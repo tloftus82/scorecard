@@ -233,9 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const player = selectedPlayerButton.getAttribute('data-player');
         const eventName = this.getAttribute('data-event');
 
-        if (clockInterval === null) {
-          showNotification('Clock is not running — event time may be inaccurate.', 'warning');
-        }
+        const clockWasRunning = clockInterval !== null;
 
         events.push({
           player,
@@ -250,7 +248,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (eventName === 'Goal' || eventName === 'Goal Allowed') await promptToStopClock();
 
-        showNotification(`<small><i>${player}</i></small><br><b>${eventName}</b>`);
+        const warning = clockWasRunning ? '' : '<br><small>⚠️ Clock was not running</small>';
+        showNotification(`<small><i>${player}</i></small><br><b>${eventName}</b>${warning}`, clockWasRunning ? 'success' : 'warning');
         renderEvents();
         updateScoreboard();
         renderPlayers();
@@ -279,9 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!saved) return;
         const eventName = this.getAttribute('data-event');
 
-        if (clockInterval === null) {
-          showNotification('Clock is not running — event time may be inaccurate.', 'warning');
-        }
+        const clockWasRunning = clockInterval !== null;
 
         events.push({
           event: eventName,
@@ -295,7 +292,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (eventName === 'Own Goal (Them)' || eventName === 'Own Goal (Us)') await promptToStopClock();
 
-        showNotification(`<b>${eventName}</b>`);
+        const warning = clockWasRunning ? '' : '<br><small>⚠️ Clock was not running</small>';
+        showNotification(`<b>${eventName}</b>${warning}`, clockWasRunning ? 'success' : 'warning');
         renderEvents();
         updateScoreboard();
         if (saved) saveGame();
