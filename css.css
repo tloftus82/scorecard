@@ -79,9 +79,22 @@ body, html {
 
 .clock-buttons {
   display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.clock-row-1,
+.clock-row-2 {
+  display: flex;
   gap: 6px;
-  align-items: center;
-  flex-wrap: wrap;
+}
+
+.clock-row-1 button {
+  flex: 1;
+}
+
+.clock-row-2 button {
+  flex: 1;
 }
 
 .clock-buttons button {
@@ -120,16 +133,13 @@ body, html {
   font-weight: 600;
 }
 
-.set-clock-btn {
-  margin-left: auto;
-}
 
 /* ── Main container ── */
 .container {
   display: flex;
   flex-direction: column;
   padding: 10px;
-  padding-top: 70px;
+  padding-top: 110px;
   max-width: 600px;
   margin: 0 auto;
   width: 100%;
