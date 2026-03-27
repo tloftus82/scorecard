@@ -434,8 +434,8 @@ li span {
   margin-right: 6px;
   display: flex;
   flex-direction: row;
-  align-items: center;
-  gap: 6px;
+  align-items: flex-start;
+  gap: 4px;
 }
 
 .event-log-name {
