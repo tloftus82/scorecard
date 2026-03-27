@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   let usScore = 0;
   let themScore = 0;
-  let startClockSeconds = 45 * 60; // Default to 45:00 (2700 seconds)
+  let startClockSeconds = 40 * 60; // Default to 40:00 (2400 seconds)
 
   let starters = [];
 
@@ -569,7 +569,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
   let clockInterval = null;
-  let clockSeconds = 45 * 60; // Start at 45:00
+  let clockSeconds = 40 * 60; // Start at 40:00
   let currentHalf = 1;
 
   function setButtonState(buttonId, enabled) {
@@ -631,7 +631,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function setClock() {
-    const defaultTime = "45:00";
+    const defaultTime = "40:00";
     const timeInput = prompt("Enter time (mm:ss):", defaultTime);
     const halfInput = prompt("Enter half (1 or 2):", currentHalf);
 

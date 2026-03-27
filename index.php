@@ -53,7 +53,7 @@
             <div id="usScore" class="score-number">0</div>
 
             <div class="clock-info">
-              <div id="clockDisplay">45:00</div>
+              <div id="clockDisplay">40:00</div>
               <div id="halfIndicator">1st Half</div>
             </div>
 
