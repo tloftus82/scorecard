@@ -322,20 +322,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     events.slice().reverse().forEach((event, index) => {
       const playerName = event.player || 'N/A';
-      let eventText;
-
-      if (event.half && event.timeRemaining) {
-        const halfText = event.half === 1 ? '1H' : event.half === 2 ? '2H' : 'N/A';
-        const mins = event.timeRemaining.minutes;
-        const secs = String(event.timeRemaining.seconds).padStart(2, '0');
-        eventText = `${halfText} - ${mins}:${secs} - ${playerName} - ${event.event}`;
-      } else {
-        eventText = `${playerName} - ${event.event}`;
-      }
 
       const li = document.createElement('li');
       const span = document.createElement('span');
-      span.textContent = eventText;
+
+      let timePrefix = '';
+      if (event.half && event.timeRemaining) {
+        const halfText = event.half === 1 ? '1H' : '2H';
+        const mins = event.timeRemaining.minutes;
+        const secs = String(event.timeRemaining.seconds).padStart(2, '0');
+        timePrefix = `${halfText} ${mins}:${secs} · `;
+      }
+
+      span.innerHTML = `<span class="event-log-name">${timePrefix}${event.event}</span><span class="event-log-player">${playerName}</span>`;
+
       const btn = document.createElement('button');
       btn.textContent = 'Delete';
       btn.onclick = () => deleteEvent(events.length - 1 - index);
