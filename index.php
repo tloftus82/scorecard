@@ -125,6 +125,6 @@
       const eventsList = <?php echo json_encode($events); ?>;
       const otherEvents = <?php echo json_encode($otherEvents); ?>;
     </script>
-    <script src="javascript.js"></script>
+    <script src="javascript.js?nocache=<?php echo time(); ?>"></script>
   </body>
 </html>
