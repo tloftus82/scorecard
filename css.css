@@ -669,7 +669,6 @@ li button:hover {
 .score-tie  { font-size: 42px; font-weight: bold; width: 54px; text-align: center; line-height: 1; color: #ffffff; }
 
 /* ── Scorecard bottom button ── */
-#scorecardButton { display: none; }
 
 .scorecard-bottom-btn {
   width: 100%;
