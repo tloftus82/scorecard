@@ -229,10 +229,11 @@ h2 {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 52px;
+  min-height: 60px;
   height: auto;
-  padding: 8px 10px;
-  font-size: 15px;
+  padding: 10px 12px;
+  font-size: 17px;
+  font-weight: 600;
   font-family: Arial, sans-serif;
   background-color: #2c3e50;
   color: #ffffff;
@@ -243,14 +244,14 @@ h2 {
 
 .player-number {
   font-weight: bold;
-  min-width: 26px;
+  min-width: 30px;
   text-align: center;
   color: #ffffff;
-  font-size: 16px;
+  font-size: 17px;
   flex-shrink: 0;
   background-color: rgba(255,255,255,0.15);
   border-radius: 4px;
-  padding: 2px 4px;
+  padding: 3px 5px;
 }
 
 .player-name {
@@ -271,9 +272,11 @@ h2 {
 }
 
 .event-button {
-  height: 52px;
-  font-size: 14px;
-  padding: 6px 4px;
+  min-height: 60px;
+  height: auto;
+  font-size: 17px;
+  font-weight: 600;
+  padding: 10px 6px;
   text-align: center;
   white-space: normal;
   line-height: 1.2;
@@ -281,7 +284,6 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 500;
 }
 
 /* ── Selected state ── */
