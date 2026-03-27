@@ -280,7 +280,7 @@ h2 {
 /* ── Player grid (2 columns) ── */
 .player-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 4px;
   margin-bottom: 2px;
   width: 100%;
@@ -289,11 +289,11 @@ h2 {
 .player-button {
   display: flex;
   align-items: center;
-  gap: 6px;
-  min-height: 44px;
+  gap: 5px;
+  min-height: 38px;
   height: auto;
-  padding: 4px 8px;
-  font-size: 17px;
+  padding: 3px 6px;
+  font-size: 14px;
   font-weight: 600;
   font-family: Arial, sans-serif;
   background-color: #2c3e50;
@@ -305,14 +305,14 @@ h2 {
 
 .player-number {
   font-weight: bold;
-  min-width: 30px;
+  min-width: 22px;
   text-align: center;
   color: #ffffff;
-  font-size: 17px;
+  font-size: 13px;
   flex-shrink: 0;
   background-color: rgba(255,255,255,0.15);
   border-radius: 4px;
-  padding: 3px 5px;
+  padding: 2px 3px;
 }
 
 .player-name {
@@ -321,16 +321,17 @@ h2 {
   flex-direction: column;
   text-align: left;
   word-break: break-word;
+  min-width: 0;
 }
 
 .player-first {
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.2;
 }
 
 .player-last {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 400;
   color: rgba(255,255,255,0.65);
   line-height: 1.2;
