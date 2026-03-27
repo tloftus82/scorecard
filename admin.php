@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-define('ADMIN_PASSWORD_HASH', '21232f297a57a5a743894a0e4a801fc3'); // MD5 of "admin" — change this!
+define('ADMIN_PASSWORD_HASH', '63b38ded3ce608f47342f48fe9ac1639'); // MD5 of "buddy1120"
 
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
