@@ -18,7 +18,7 @@ if (!file_exists($filepath)) {
 
 // Load the game JSON
 $gameData = json_decode(file_get_contents($filepath), true);
-$events = $gameData['events'];
+$events = $gameData['events'] ?? [];
 $team = $gameData['team'];
 $opponent = $gameData['opponent'];
 $date = date('F j, Y', strtotime(str_replace('_', '-', substr($filename, 0, 10))));
@@ -102,28 +102,19 @@ foreach ($events as $event) {
             $players[$playerName]['YellowCards']++;
             break;
         case 'Save':
+            $players[$playerName]['Saves']++;
+            break;
         case 'Goal Allowed':
+            $themScore++;
+            $players[$playerName]['GoalsAllowed']++;
+            break;
         case 'PK Against (Scored)':
+            $themScore++;
+            $players[$playerName]['GoalsAllowed']++;
+            $players[$playerName]['PKAgainst']++;
+            break;
         case 'PK Against (Missed)':
-            if ($event['event'] === 'Goal Allowed') {
-                $themScore++; // Add goal to opponent's score
-            }
-            if ($event['event'] === 'PK Against (Scored)') {
-                $themScore++; // Add PK Against (Scored) to opponent's score
-            }
-            if ($event['event'] === 'Save') {
-                $players[$playerName]['Saves']++;
-            }
-            if ($event['event'] === 'Goal Allowed') {
-                $players[$playerName]['GoalsAllowed']++;
-            }
-            if ($event['event'] === 'PK Against (Scored)') {
-                $players[$playerName]['GoalsAllowed']++;
-                $players[$playerName]['PKAgainst']++;
-            }
-            if ($event['event'] === 'PK Against (Missed)') {
-                $players[$playerName]['PKAgainst']++;
-            }
+            $players[$playerName]['PKAgainst']++;
             break;
         case 'Corner Kick':
             $cornerKicksUs++; // North corner kick (player associated)
@@ -167,6 +158,7 @@ foreach ($events as $event) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scorecard</title>
     <style>
         body {
@@ -198,21 +190,6 @@ foreach ($events as $event) {
             margin-top: 20px;
             font-size: 14px;
         }
-        #downloadBtn {
-            display: block;
-            margin: 10px auto 20px;
-            padding: 10px 20px;
-            background-color: #3498db;
-            color: white;
-            font-size: 16px;
-            border: none;
-            cursor: pointer;
-            border-radius: 6px;
-        }
-        #downloadBtn:hover {
-            background-color: #2980b9;
-        }
-
         /* Light gray color for 0 values */
         .gray-zero {
             color: #DCDCDC; /* Light gray */
@@ -238,25 +215,13 @@ foreach ($events as $event) {
         <p><?php echo $date; ?></p>
 
         <!-- Final Score with color and result -->
-        <h3 class="<?php 
-            if ($usScore > $themScore) {
-                echo 'win'; 
-            } elseif ($usScore < $themScore) {
-                echo 'loss'; 
-            } else {
-                echo 'tie'; 
-            } 
-        ?>">
-            Final Score: <?php echo $usScore; ?> - <?php echo $themScore; ?>
-            <?php 
-                if ($usScore > $themScore) {
-                    echo ' (W)';
-                } elseif ($usScore < $themScore) {
-                    echo ' (L)';
-                } else {
-                    echo ' (T)';
-                }
-            ?>
+        <?php
+            if ($usScore > $themScore)      { $resultClass = 'win'; $resultLabel = '(W)'; }
+            elseif ($usScore < $themScore)  { $resultClass = 'loss'; $resultLabel = '(L)'; }
+            else                            { $resultClass = 'tie'; $resultLabel = '(T)'; }
+        ?>
+        <h3 class="<?php echo $resultClass; ?>">
+            Final Score: <?php echo $usScore; ?> - <?php echo $themScore; ?> <?php echo $resultLabel; ?>
         </h3>
     </div>
 
@@ -340,7 +305,6 @@ foreach ($events as $event) {
                 <tr>
                     <th>#</th>
                     <th>Goalie</th>
-                    <th>Min Played</th>
                     <th>Saves</th>
                     <th>Goals Allowed</th>
                     <th>PKs Against/Allowed</th>
@@ -361,9 +325,8 @@ foreach ($events as $event) {
                         $totalPKAgainst += $stats['PKAgainst']; // Add to total PKs against
                 ?>
                     <tr>
-                        <td><?php echo $stats['Number']; ?></td> <!-- Player number -->
+                        <td><?php echo $stats['Number']; ?></td>
                         <td><?php echo htmlspecialchars($playerName); ?></td>
-                        <td><?php echo isset($stats['MinPlayed']) ? $stats['MinPlayed'] : 'N/A'; ?></td> <!-- Min Played -->
                         <td class="<?php echo $stats['Saves'] === 0 ? 'gray-zero' : ''; ?>"><?php echo $stats['Saves']; ?></td> <!-- Saves (display 0 in gray) -->
                         <td class="<?php echo $stats['GoalsAllowed'] === 0 ? 'gray-zero' : ''; ?>"><?php echo $stats['GoalsAllowed']; ?></td> <!-- Goals Allowed (display 0 in gray) -->
                         <td class="<?php echo $stats['PKAgainst'] === 0 ? 'gray-zero' : ''; ?>"><?php echo $stats['PKAgainst']; ?></td> <!-- PKs Against (display 0 in gray) -->
@@ -374,8 +337,8 @@ foreach ($events as $event) {
                 ?>
                 <!-- Totals Row for Goalies -->
                 <tr>
-                    <td colspan="3"><strong>Total</strong></td>
-                    <td><?php echo $totalSaves; ?></td> <!-- Total Saves -->
+                    <td colspan="2"><strong>Total</strong></td>
+                    <td><?php echo $totalSaves; ?></td>
                     <td><?php echo $totalGoalsAllowed; ?></td> <!-- Total Goals Allowed -->
                     <td><?php echo $totalPKAgainst; ?></td> <!-- Total PKs Against -->
                 </tr>

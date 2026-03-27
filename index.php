@@ -47,12 +47,12 @@
 
     <div id="scoreboard">
       <div class="score-clock-container">
-        <div id="usScore" class="score-number">0</div>
+        <div id="usScore" class="score-tie">0</div>
         <div class="clock-info">
           <div id="clockDisplay">40:00</div>
           <div id="halfIndicator">1st Half</div>
         </div>
-        <div id="themScore" class="score-number">0</div>
+        <div id="themScore" class="score-tie">0</div>
       </div>
       <div class="clock-buttons">
         <button id="startClockButton">Start</button>

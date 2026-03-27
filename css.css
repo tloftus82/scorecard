@@ -47,13 +47,6 @@ body, html {
   margin-bottom: 6px;
 }
 
-#usScore, #themScore {
-  font-size: 44px;
-  font-weight: bold;
-  width: 72px;
-  text-align: center;
-  line-height: 1;
-}
 
 .clock-info {
   display: flex;
@@ -503,10 +496,10 @@ li button:hover {
   box-shadow: 0 0 12px black;
 }
 
-/* ── Score colors ── */
-.score-win  { color: #2ecc71; }
-.score-loss { color: #e74c3c; }
-.score-tie  { color: #ffffff; }
+/* ── Score number colors ── */
+.score-win  { font-size: 44px; font-weight: bold; width: 72px; text-align: center; line-height: 1; color: #2ecc71; }
+.score-loss { font-size: 44px; font-weight: bold; width: 72px; text-align: center; line-height: 1; color: #e74c3c; }
+.score-tie  { font-size: 44px; font-weight: bold; width: 72px; text-align: center; line-height: 1; color: #ffffff; }
 
 /* ── Scorecard button hidden initially ── */
 #scorecardButton { display: none; }
