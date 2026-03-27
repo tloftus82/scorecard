@@ -1,0 +1,21 @@
+name: FTP Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: uru.soccer
+          username: tloftus@uru.soccer
+          password: ${{ secrets.FTP_PASSWORD }}
+          remote-dir: /tom/scorecard/
