@@ -63,9 +63,9 @@
       <div class="clock-buttons">
         <button id="startClockButton">Start</button>
         <button id="stopClockButton">Stop</button>
-        <button id="setClockButton">Set</button>
-        <button id="startFirstHalfButton">1st Half</button>
-        <button id="startSecondHalfButton">2nd Half</button>
+        <button id="startFirstHalfButton"><span class="half-btn-start">Start</span><span class="half-btn-half">1st Half</span></button>
+        <button id="startSecondHalfButton"><span class="half-btn-start">Start</span><span class="half-btn-half">2nd Half</span></button>
+        <button id="setClockButton" class="set-clock-btn">Set</button>
       </div>
     </div>
 
