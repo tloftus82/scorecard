@@ -119,6 +119,37 @@
       </div>
     </div>
 
+    <!-- Generic alert/confirm/prompt modal -->
+    <div id="appModal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <p id="appModalMessage"></p>
+        <input id="appModalInput" class="modal-text-input" style="display:none;">
+        <div id="appModalButtons" class="modal-buttons"></div>
+      </div>
+    </div>
+
+    <!-- Set Clock modal -->
+    <div id="setClockModal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <h2>Set Clock</h2>
+        <div class="modal-field">
+          <label>Time (mm:ss)</label>
+          <input type="text" id="clockTimeInput" class="modal-text-input" placeholder="40:00">
+        </div>
+        <div class="modal-field">
+          <label>Half</label>
+          <select id="clockHalfSelect" class="modal-select">
+            <option value="1">1st Half</option>
+            <option value="2">2nd Half</option>
+          </select>
+        </div>
+        <div class="modal-buttons">
+          <button id="clockModalOk">Set Clock</button>
+          <button id="clockModalCancel" class="btn-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
     <script>
       const teamsList = <?php echo json_encode($teams); ?>;

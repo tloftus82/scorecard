@@ -17,6 +17,70 @@ document.addEventListener('DOMContentLoaded', function() {
   const starterList = document.getElementById('starterList');
   const confirmStartersButton = document.getElementById('confirmStartersButton');
 
+  // ── Modal utility ──────────────────────────────────────────
+  const appModal = document.getElementById('appModal');
+  const appModalMessage = document.getElementById('appModalMessage');
+  const appModalInput = document.getElementById('appModalInput');
+  const appModalButtons = document.getElementById('appModalButtons');
+
+  function showAlert(message) {
+    return new Promise(resolve => {
+      appModalMessage.textContent = message;
+      appModalInput.style.display = 'none';
+      appModalButtons.innerHTML = '';
+      const ok = document.createElement('button');
+      ok.textContent = 'OK';
+      ok.addEventListener('click', () => { appModal.style.display = 'none'; resolve(); });
+      appModalButtons.appendChild(ok);
+      appModal.style.display = 'flex';
+      ok.focus();
+    });
+  }
+
+  function showConfirm(message, yesText = 'Yes', noText = 'No') {
+    return new Promise(resolve => {
+      appModalMessage.textContent = message;
+      appModalInput.style.display = 'none';
+      appModalButtons.innerHTML = '';
+      const yes = document.createElement('button');
+      yes.textContent = yesText;
+      yes.addEventListener('click', () => { appModal.style.display = 'none'; resolve(true); });
+      const no = document.createElement('button');
+      no.textContent = noText;
+      no.className = 'btn-cancel';
+      no.addEventListener('click', () => { appModal.style.display = 'none'; resolve(false); });
+      appModalButtons.appendChild(yes);
+      appModalButtons.appendChild(no);
+      appModal.style.display = 'flex';
+    });
+  }
+
+  function showPrompt(message, defaultValue = '', inputType = 'text') {
+    return new Promise(resolve => {
+      appModalMessage.textContent = message;
+      appModalInput.type = inputType;
+      appModalInput.value = defaultValue;
+      appModalInput.style.display = 'block';
+      appModalButtons.innerHTML = '';
+      const ok = document.createElement('button');
+      ok.textContent = 'OK';
+      ok.addEventListener('click', () => {
+        appModal.style.display = 'none';
+        resolve(appModalInput.value || null);
+      });
+      const cancel = document.createElement('button');
+      cancel.textContent = 'Cancel';
+      cancel.className = 'btn-cancel';
+      cancel.addEventListener('click', () => { appModal.style.display = 'none'; resolve(null); });
+      appModalButtons.appendChild(ok);
+      appModalButtons.appendChild(cancel);
+      appModal.style.display = 'flex';
+      appModalInput.onkeydown = e => { if (e.key === 'Enter') ok.click(); };
+      setTimeout(() => appModalInput.focus(), 50);
+    });
+  }
+  // ──────────────────────────────────────────────────────────
+
   let selectedTeamName = '';
   let currentRoster = [];
   let events = [];
@@ -40,17 +104,17 @@ document.addEventListener('DOMContentLoaded', function() {
     teamSelect.appendChild(option);
   });
 
-  teamSelect.addEventListener('change', function () {
+  teamSelect.addEventListener('change', async function () {
     const selectedOption = this.options[this.selectedIndex];
     const file = this.value;
     const correctHash = selectedOption.getAttribute('data-password');
     selectedTeamName = selectedOption.textContent;
 
-    const password = prompt("Enter password for team access:");
-    if (!password) return;
+    const password = await showPrompt("Enter password for team access:", "", "password");
+    if (!password) { this.value = ""; return; }
 
     if (md5(password) !== correctHash) {
-      alert("Incorrect password.");
+      await showAlert("Incorrect password.");
       this.value = "";
       return;
     }
@@ -65,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
         opponentInput.disabled = false;
         saveGameButton.disabled = false;
       })
-      .catch(() => alert("Failed to load roster."));
+      .catch(() => showAlert("Failed to load roster."));
   });
 
   sortSelect.addEventListener('change', renderPlayers);
@@ -102,14 +166,14 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }));
     xhr.onload = function() {
-      if (xhr.status !== 200) alert('Error saving game.');
+      if (xhr.status !== 200) showAlert('Error saving game.');
     };
   }
 
-  function showNotification(message) {
+  function showNotification(message, type = 'success') {
     notification.innerHTML = message;
-    notification.classList.add('show');
-    setTimeout(() => notification.classList.remove('show'), 1000);
+    notification.className = `notification ${type} show`;
+    setTimeout(() => notification.classList.remove('show'), type === 'warning' ? 2500 : 1000);
   }
 
   function renderPlayers() {
@@ -155,10 +219,10 @@ document.addEventListener('DOMContentLoaded', function() {
       button.textContent = eventObj.name;
       button.disabled = !saved;
 
-      button.addEventListener('click', function () {
+      button.addEventListener('click', async function () {
         if (!saved) return;
         if (!selectedPlayerButton) {
-          alert('Select a player first!');
+          await showAlert('Select a player first!');
           return;
         }
 
@@ -170,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const eventName = this.getAttribute('data-event');
 
         if (clockInterval === null) {
-          alert("Warning: Clock is not running! Event time may be inaccurate.");
+          showNotification('Clock is not running — event time may be inaccurate.', 'warning');
         }
 
         events.push({
@@ -184,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         });
 
-        if (eventName === 'Goal' || eventName === 'Goal Allowed') promptToStopClock();
+        if (eventName === 'Goal' || eventName === 'Goal Allowed') await promptToStopClock();
 
         showNotification(`<small><i>${player}</i></small><br><b>${eventName}</b>`);
         renderEvents();
@@ -211,12 +275,12 @@ document.addEventListener('DOMContentLoaded', function() {
       button.textContent = eventObj.name;
       button.disabled = !saved;
 
-      button.addEventListener('click', function () {
+      button.addEventListener('click', async function () {
         if (!saved) return;
         const eventName = this.getAttribute('data-event');
 
         if (clockInterval === null) {
-          alert("Warning: Clock is not running! Event time may be inaccurate.");
+          showNotification('Clock is not running — event time may be inaccurate.', 'warning');
         }
 
         events.push({
@@ -229,7 +293,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         });
 
-        if (eventName === 'Own Goal (Them)' || eventName === 'Own Goal (Us)') promptToStopClock();
+        if (eventName === 'Own Goal (Them)' || eventName === 'Own Goal (Us)') await promptToStopClock();
 
         showNotification(`<b>${eventName}</b>`);
         renderEvents();
@@ -293,8 +357,10 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('.event-window').scrollTop = 0;
   }
 
-  function promptToStopClock() {
-    if (clockInterval && confirm("Goal event recorded. Stop the clock?")) stopClock();
+  async function promptToStopClock() {
+    if (clockInterval && await showConfirm("Goal recorded. Stop the clock?", "Stop", "Keep Running")) {
+      stopClock();
+    }
   }
 
   function updateScoreboard() {
@@ -312,10 +378,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (saved) saveGame();
   };
 
-  saveGameButton.addEventListener('click', function() {
+  saveGameButton.addEventListener('click', async function() {
     const opponent = opponentInput.value.trim();
     if (!opponent) {
-      alert('Please enter the opponent name.');
+      await showAlert('Please enter the opponent name.');
       return;
     }
     filename = generateFilename(opponent);
@@ -337,12 +403,12 @@ document.addEventListener('DOMContentLoaded', function() {
     starterModal.style.display = 'flex';
   }
 
-  confirmStartersButton.addEventListener('click', function() {
+  confirmStartersButton.addEventListener('click', async function() {
     const checkboxes = starterList.querySelectorAll('input[type="checkbox"]');
     const checked = Array.from(checkboxes).filter(cb => cb.checked);
 
     if (checked.length !== 11) {
-      alert('You must select exactly 11 starters.');
+      await showAlert('You must select exactly 11 starters.');
       return;
     }
 
@@ -365,9 +431,9 @@ document.addEventListener('DOMContentLoaded', function() {
     saveGame();
   });
 
-  loadGameButton.addEventListener('click', function () {
+  loadGameButton.addEventListener('click', async function () {
     if (!selectedTeamName) {
-      alert("Please select a team first.");
+      await showAlert("Please select a team first.");
       return;
     }
 
@@ -422,8 +488,8 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   }
 
-  scorecardButton.addEventListener('click', function() {
-    if (!filename) { alert('No game loaded or saved!'); return; }
+  scorecardButton.addEventListener('click', async function() {
+    if (!filename) { await showAlert('No game loaded or saved!'); return; }
     window.open('scorecard.php?file=' + encodeURIComponent(filename + '.json'), '_blank');
   });
 
@@ -476,27 +542,37 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('startClockButton').classList.add('flash');
   }
 
+  // Set Clock modal
   function setClock() {
-    const timeInput = prompt("Enter time (mm:ss):", "40:00");
-    const halfInput = prompt("Enter half (1 or 2):", currentHalf);
-    if (!timeInput || !halfInput) return;
+    const mins = Math.floor(clockSeconds / 60);
+    const secs = clockSeconds % 60;
+    document.getElementById('clockTimeInput').value =
+      `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    document.getElementById('clockHalfSelect').value = currentHalf;
+    document.getElementById('setClockModal').style.display = 'flex';
+    setTimeout(() => document.getElementById('clockTimeInput').focus(), 50);
+  }
+
+  document.getElementById('clockModalOk').addEventListener('click', async function() {
+    const timeInput = document.getElementById('clockTimeInput').value.trim();
+    const halfInput = document.getElementById('clockHalfSelect').value;
 
     if (!/^([0-5]?[0-9]):([0-5]?[0-9])$/.test(timeInput)) {
-      alert("Invalid time format. Use mm:ss.");
+      await showAlert("Invalid time format. Use mm:ss.");
       return;
     }
 
     const [minutes, seconds] = timeInput.split(':').map(Number);
     clockSeconds = (minutes * 60) + seconds;
-
-    if (halfInput === '1' || halfInput === '2') {
-      currentHalf = parseInt(halfInput);
-      document.getElementById('halfIndicator').textContent = currentHalf === 1 ? '1st Half' : '2nd Half';
-    } else {
-      alert("Invalid half. Enter 1 or 2.");
-    }
+    currentHalf = parseInt(halfInput);
+    document.getElementById('halfIndicator').textContent = currentHalf === 1 ? '1st Half' : '2nd Half';
     updateClockDisplay();
-  }
+    document.getElementById('setClockModal').style.display = 'none';
+  });
+
+  document.getElementById('clockModalCancel').addEventListener('click', function() {
+    document.getElementById('setClockModal').style.display = 'none';
+  });
 
   document.getElementById('startClockButton').addEventListener('click', startClock);
   document.getElementById('stopClockButton').addEventListener('click', stopClock);
