@@ -585,11 +585,11 @@ li button:hover {
 
 .modal-content {
   background: #1e1e1e;
-  padding: 20px;
+  padding: 16px;
   border-radius: 10px;
   width: 92%;
   max-width: 420px;
-  max-height: 80vh;
+  max-height: 92vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -612,18 +612,18 @@ li button:hover {
 }
 
 #starterList label {
-  font-size: 16px;
+  font-size: 14px;
   display: flex;
   align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #333;
+  padding: 5px 0;
+  border-bottom: 1px solid #2a2a2a;
   cursor: pointer;
 }
 
 #starterList input[type="checkbox"] {
-  width: 22px;
-  height: 22px;
-  margin-right: 12px;
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
   flex-shrink: 0;
   accent-color: #2ecc71;
 }
