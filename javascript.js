@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
       button.setAttribute('data-number', `${player.number}`);
       button.innerHTML = `
         <span class="player-number">${player.number}</span>
-        <span class="player-name">${player.first_name} ${player.last_name.charAt(0)}.</span>
+        <span class="player-name"><span class="player-first">${player.first_name}</span><span class="player-last">${player.last_name}</span></span>
       `;
       button.disabled = !saved;
       const hasPlayed = events.some(e => e.player === `${player.first_name} ${player.last_name}`);
