@@ -93,32 +93,37 @@
 
       <div id="notification" class="notification"></div>
 
-      <div class="section-header">
-        <h2>Select Player</h2>
-        <div class="sort-container">
-          <span class="sort-label">Sort:</span>
-          <select id="playerSortSelect">
-            <option value="number">No.</option>
-            <option value="first">First</option>
-            <option value="last">Last</option>
-          </select>
+      <div id="gameSection" style="display:none;">
+
+        <div class="section-header">
+          <h2>Select Player</h2>
+          <div class="sort-container">
+            <span class="sort-label">Sort:</span>
+            <select id="playerSortSelect">
+              <option value="number">No.</option>
+              <option value="first">First</option>
+              <option value="last">Last</option>
+            </select>
+          </div>
         </div>
+
+        <div id="playerButtons" class="player-grid"></div>
+
+        <h2>Select Event</h2>
+        <div id="eventButtons" class="event-grid"></div>
+
+        <h2>Other Events</h2>
+        <div id="otherEventButtons" class="event-grid"></div>
+
+        <h2>Game Events</h2>
+        <div class="event-window">
+          <ul id="eventList"></ul>
+        </div>
+
+        <button id="scorecardButton" class="scorecard-bottom-btn">Scorecard</button>
+        <input id="scorecardLink" class="scorecard-link-box" type="text" readonly placeholder="Scorecard link will appear here">
+
       </div>
-
-      <div id="playerButtons" class="player-grid"></div>
-
-      <h2>Select Event</h2>
-      <div id="eventButtons" class="event-grid"></div>
-
-      <h2>Other Events</h2>
-      <div id="otherEventButtons" class="event-grid"></div>
-
-      <h2>Game Events</h2>
-      <div class="event-window">
-        <ul id="eventList"></ul>
-      </div>
-
-      <button id="scorecardButton" class="scorecard-bottom-btn">Scorecard</button>
 
     </div>
 

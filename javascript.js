@@ -147,9 +147,17 @@ document.addEventListener('DOMContentLoaded', function() {
     return `${yyyy}-${mm}-${dd}_${hh}${mi}${ss}_${teamPart}_${opponentPart}`;
   }
 
+  function showGameSection() {
+    document.getElementById('gameSection').style.display = 'block';
+  }
+
+  function updateScorecardLink() {
+    const url = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/') + 'scorecard.php?file=' + encodeURIComponent(filename + '.json');
+    document.getElementById('scorecardLink').value = url;
+  }
+
   function disableSaveButton() {
     saveGameButton.style.display = 'none';
-    scorecardButton.style.display = 'inline-block';
   }
 
   function saveGame() {
@@ -415,8 +423,9 @@ document.addEventListener('DOMContentLoaded', function() {
     opponentInput.readOnly = true;
     disableSaveButton();
     loadGameButton.style.display = 'none';
-    scorecardButton.style.display = 'inline-block';
     starterModal.style.display = 'none';
+    showGameSection();
+    updateScorecardLink();
 
     renderPlayers();
     renderEventButtons();
@@ -471,8 +480,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         disableSaveButton();
         loadGameButton.style.display = 'none';
-        scorecardButton.style.display = 'inline-block';
         loadMenu.style.display = 'none';
+        showGameSection();
+        updateScorecardLink();
 
         renderEvents();
         updateScoreboard();
@@ -485,6 +495,15 @@ document.addEventListener('DOMContentLoaded', function() {
   scorecardButton.addEventListener('click', async function() {
     if (!filename) { await showAlert('No game loaded or saved!'); return; }
     window.open('scorecard.php?file=' + encodeURIComponent(filename + '.json'), '_blank');
+  });
+
+  document.getElementById('scorecardLink').addEventListener('click', function() {
+    if (!this.value) return;
+    navigator.clipboard.writeText(this.value).then(() => {
+      showNotification('Link copied!', 'success');
+    }).catch(() => {
+      this.select();
+    });
   });
 
   let clockInterval = null;
