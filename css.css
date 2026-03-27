@@ -23,12 +23,13 @@ body, html {
   background-color: #121212;
   z-index: 999;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   border-bottom: 2px solid #3498db;
   box-shadow: 0 2px 8px rgba(0,0,0,0.6);
-  padding: 6px 10px 8px;
+  padding: 5px 10px;
+  gap: 8px;
   backface-visibility: hidden;
   transform: translateZ(0);
 }
@@ -41,12 +42,8 @@ body, html {
 .score-clock-container {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 100%;
-  gap: 20px;
-  margin-bottom: 6px;
+  gap: 10px;
 }
-
 
 .clock-info {
   display: flex;
@@ -55,31 +52,27 @@ body, html {
 }
 
 #clockDisplay {
-  font-size: 28px;
+  font-size: 20px;
   line-height: 1;
   letter-spacing: 1px;
 }
 
 #halfIndicator {
-  font-size: 12px;
+  font-size: 10px;
   color: #aaa;
   line-height: 1;
-  margin-top: 3px;
+  margin-top: 2px;
 }
 
 .clock-buttons {
   display: flex;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
+  gap: 6px;
 }
 
 .clock-buttons button {
-  flex: 1;
-  max-width: 120px;
-  height: 38px;
-  font-size: 15px;
-  padding: 0;
+  height: 34px;
+  font-size: 13px;
+  padding: 0 10px;
   border-radius: 6px;
 }
 
@@ -88,7 +81,7 @@ body, html {
   display: flex;
   flex-direction: column;
   padding: 10px;
-  padding-top: 112px;
+  padding-top: 58px;
   max-width: 600px;
   margin: 0 auto;
   width: 100%;
@@ -603,9 +596,9 @@ li button:hover {
 }
 
 /* ── Score number colors ── */
-.score-win  { font-size: 44px; font-weight: bold; width: 72px; text-align: center; line-height: 1; color: #2ecc71; }
-.score-loss { font-size: 44px; font-weight: bold; width: 72px; text-align: center; line-height: 1; color: #e74c3c; }
-.score-tie  { font-size: 44px; font-weight: bold; width: 72px; text-align: center; line-height: 1; color: #ffffff; }
+.score-win  { font-size: 32px; font-weight: bold; width: 48px; text-align: center; line-height: 1; color: #2ecc71; }
+.score-loss { font-size: 32px; font-weight: bold; width: 48px; text-align: center; line-height: 1; color: #e74c3c; }
+.score-tie  { font-size: 32px; font-weight: bold; width: 48px; text-align: center; line-height: 1; color: #ffffff; }
 
 /* ── Scorecard button hidden initially ── */
 #scorecardButton { display: none; }
