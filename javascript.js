@@ -509,6 +509,8 @@ document.addEventListener('DOMContentLoaded', function() {
   let clockInterval = null;
   let clockSeconds = 40 * 60;
   let currentHalf = 1;
+  let clockStartedAt = null;
+  let clockSecondsAtStart = 40 * 60;
 
   function setButtonState(buttonId, enabled) {
     const button = document.getElementById(buttonId);
@@ -526,23 +528,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function startClock() {
     if (clockInterval) return;
+    clockStartedAt = Date.now();
+    clockSecondsAtStart = clockSeconds;
     clockInterval = setInterval(() => {
-      clockSeconds--;
+      const elapsed = Math.floor((Date.now() - clockStartedAt) / 1000);
+      clockSeconds = Math.max(0, clockSecondsAtStart - elapsed);
+      updateClockDisplay();
       if (clockSeconds <= 0) {
-        clockSeconds = 0;
-        updateClockDisplay();
         clearInterval(clockInterval);
         clockInterval = null;
+        clockStartedAt = null;
         setButtonState('startClockButton', true);
         setButtonState('stopClockButton', false);
         setButtonState('setClockButton', true);
         setButtonState('startFirstHalfButton', true);
         setButtonState('startSecondHalfButton', true);
         flashScoreboard();
-      } else {
-        updateClockDisplay();
       }
-    }, 1000);
+    }, 500);
     setButtonState('startClockButton', false);
     setButtonState('stopClockButton', true);
     setButtonState('setClockButton', false);
@@ -553,6 +556,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function stopClock() {
     if (clockInterval) { clearInterval(clockInterval); clockInterval = null; }
+    clockStartedAt = null;
     setButtonState('startClockButton', true);
     setButtonState('stopClockButton', false);
     setButtonState('setClockButton', true);
