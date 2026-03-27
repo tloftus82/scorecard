@@ -455,14 +455,15 @@ li span {
   font-size: 12px;
   font-weight: 400;
   color: rgba(255,255,255,0.65);
-  line-height: 1.2;
+  line-height: 1;
 }
 
 .event-log-player {
   font-size: 12px;
   font-weight: 400;
   color: rgba(255,255,255,0.65);
-  line-height: 1.2;
+  line-height: 1;
+  margin-top: 1px;
 }
 
 li button {
