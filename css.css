@@ -148,7 +148,7 @@ body, html {
 .container {
   display: flex;
   flex-direction: column;
-  padding: 10px;
+  padding: 6px 8px;
   padding-top: 110px;
   max-width: 600px;
   margin: 0 auto;
@@ -159,15 +159,15 @@ body, html {
 .setup-section {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 8px;
+  gap: 4px;
+  margin-bottom: 4px;
 }
 
 .setup-section select {
   width: 100%;
-  height: 42px;
-  padding: 0 12px;
-  font-size: 15px;
+  height: 38px;
+  padding: 0 10px;
+  font-size: 14px;
   border-radius: 6px;
   border: none;
   background-color: #1e1e1e;
@@ -179,20 +179,20 @@ body, html {
 .vs-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .vs-label {
-  font-size: 15px;
+  font-size: 14px;
   color: #aaa;
   white-space: nowrap;
 }
 
 .vs-row input[type="text"] {
   flex: 1;
-  height: 42px;
-  padding: 0 12px;
-  font-size: 15px;
+  height: 38px;
+  padding: 0 10px;
+  font-size: 14px;
   border-radius: 6px;
   border: none;
   background-color: #1e1e1e;
@@ -201,13 +201,13 @@ body, html {
 
 .setup-buttons {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 .setup-buttons button {
   flex: 1;
-  height: 42px;
-  font-size: 14px;
+  height: 38px;
+  font-size: 13px;
   white-space: nowrap;
 }
 
@@ -235,9 +235,9 @@ button:hover {
 
 /* ── Section headers ── */
 h2 {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: bold;
-  margin: 8px 0 4px;
+  margin: 5px 0 3px;
   color: #ccc;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -247,7 +247,7 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 8px 0 4px;
+  margin: 5px 0 3px;
 }
 
 .section-header h2 {
@@ -289,10 +289,10 @@ h2 {
 .player-button {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 50px;
+  gap: 6px;
+  min-height: 44px;
   height: auto;
-  padding: 6px 10px;
+  padding: 4px 8px;
   font-size: 17px;
   font-weight: 600;
   font-family: Arial, sans-serif;
@@ -346,11 +346,11 @@ h2 {
 }
 
 .event-button {
-  min-height: 50px;
+  min-height: 44px;
   height: auto;
   font-size: 17px;
   font-weight: 600;
-  padding: 6px 4px;
+  padding: 4px 4px;
   text-align: center;
   white-space: normal;
   line-height: 1.2;
@@ -386,31 +386,31 @@ h2 {
 /* ── Load menu ── */
 .load-menu {
   background-color: #1e1e1e;
-  padding: 10px;
+  padding: 6px;
   border-radius: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
 }
 
 .load-menu button {
   display: block;
   width: 100%;
-  height: 46px;
-  margin: 4px 0;
+  height: 38px;
+  margin: 3px 0;
   font-size: 13px;
   text-align: left;
-  padding: 0 12px;
+  padding: 0 10px;
 }
 
 /* ── Game events list ── */
 .event-window {
   background-color: #1e1e1e;
-  padding: 8px;
+  padding: 6px;
   border-radius: 8px;
   width: 100%;
-  min-height: 180px;
-  max-height: 260px;
+  min-height: 120px;
+  max-height: 200px;
   overflow-y: auto;
-  margin-bottom: 20px;
+  margin-bottom: 6px;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -422,8 +422,8 @@ ul {
 
 li {
   background-color: #2a2a2a;
-  margin: 3px 0;
-  padding: 6px 10px;
+  margin: 2px 0;
+  padding: 4px 8px;
   border-radius: 6px;
   display: flex;
   justify-content: space-between;
@@ -672,24 +672,24 @@ li button:hover {
 
 .scorecard-bottom-btn {
   width: 100%;
-  height: 48px;
-  font-size: 16px;
+  height: 42px;
+  font-size: 15px;
   font-weight: 600;
-  margin-top: 10px;
-  margin-bottom: 6px;
+  margin-top: 4px;
+  margin-bottom: 4px;
   background-color: #8e44ad;
 }
 
 .scorecard-link-box {
   width: 100%;
-  height: 40px;
-  padding: 0 12px;
-  font-size: 13px;
+  height: 34px;
+  padding: 0 10px;
+  font-size: 12px;
   border-radius: 6px;
   border: 1px solid #444;
   background-color: #1e1e1e;
   color: #aaa;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   cursor: pointer;
   caret-color: transparent;
 }
