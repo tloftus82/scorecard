@@ -595,35 +595,35 @@ li button:hover {
 }
 
 .modal-content h2 {
-  font-size: 17px;
-  margin-bottom: 12px;
+  font-size: 14px;
+  margin-bottom: 6px;
 }
 
 .modal-buttons {
-  margin-top: 16px;
+  margin-top: 8px;
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .modal-buttons button {
   flex: 1;
-  height: 50px;
-  font-size: 15px;
+  height: 40px;
+  font-size: 14px;
 }
 
 #starterList label {
-  font-size: 14px;
+  font-size: 13px;
   display: flex;
   align-items: center;
-  padding: 5px 0;
+  padding: 2px 0;
   border-bottom: 1px solid #2a2a2a;
   cursor: pointer;
 }
 
 #starterList input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  margin-right: 10px;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
   flex-shrink: 0;
   accent-color: #2ecc71;
 }
