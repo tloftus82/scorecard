@@ -337,7 +337,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const timeStr = (event.half && event.timeRemaining)
         ? `${event.half === 1 ? '1st Half' : '2nd Half'} - ${event.timeRemaining.minutes}:${String(event.timeRemaining.seconds).padStart(2, '0')}`
         : '';
-      span.innerHTML = `<span class="event-log-name">${event.event}</span><span class="event-log-meta"><span class="event-log-time">${timeStr}</span><span class="event-log-player">${playerName}</span></span>`;
+      const detail = [timeStr, playerName].filter(Boolean).join(' · ');
+      span.innerHTML = `<span class="event-log-name">${event.event}</span><span class="event-log-detail">${detail}</span>`;
 
       const btn = document.createElement('button');
       btn.textContent = 'Delete';
