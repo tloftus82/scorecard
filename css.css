@@ -442,7 +442,8 @@ li span {
   font-size: 14px;
   font-weight: 600;
   color: #ffffff;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .event-log-meta {
@@ -451,6 +452,8 @@ li span {
   align-items: flex-start;
   gap: 0;
   line-height: 1;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .event-log-time {
