@@ -347,11 +347,11 @@ h2 {
 }
 
 .event-button {
-  min-height: 44px;
+  min-height: 38px;
   height: auto;
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 600;
-  padding: 4px 4px;
+  padding: 3px 4px;
   text-align: center;
   white-space: normal;
   line-height: 1.2;
