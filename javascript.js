@@ -517,6 +517,8 @@ document.addEventListener('DOMContentLoaded', function() {
         setButtonState('startClockButton', true);
         setButtonState('stopClockButton', false);
         setButtonState('setClockButton', true);
+        setButtonState('startFirstHalfButton', true);
+        setButtonState('startSecondHalfButton', true);
         flashScoreboard();
       } else {
         updateClockDisplay();
@@ -525,6 +527,8 @@ document.addEventListener('DOMContentLoaded', function() {
     setButtonState('startClockButton', false);
     setButtonState('stopClockButton', true);
     setButtonState('setClockButton', false);
+    setButtonState('startFirstHalfButton', false);
+    setButtonState('startSecondHalfButton', false);
     document.getElementById('startClockButton').classList.remove('flash');
   }
 
@@ -533,6 +537,8 @@ document.addEventListener('DOMContentLoaded', function() {
     setButtonState('startClockButton', true);
     setButtonState('stopClockButton', false);
     setButtonState('setClockButton', true);
+    setButtonState('startFirstHalfButton', true);
+    setButtonState('startSecondHalfButton', true);
     document.getElementById('startClockButton').classList.add('flash');
   }
 
@@ -593,6 +599,8 @@ document.addEventListener('DOMContentLoaded', function() {
   setButtonState('startClockButton', true);
   setButtonState('stopClockButton', false);
   setButtonState('setClockButton', true);
+  setButtonState('startFirstHalfButton', true);
+  setButtonState('startSecondHalfButton', true);
   updateScoreboard();
 
   renderOtherEventButtons();
