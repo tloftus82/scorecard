@@ -1,0 +1,24 @@
+[
+  { "first_name": "Ian", "last_name": "Ocegueda", "class": "FR", "position": "GK", "number": 1 },
+  { "first_name": "Angel", "last_name": "Maldonado Perez", "class": "JR", "position": "D", "number": 2 },
+  { "first_name": "Javier", "last_name": "Portillo", "class": "JR", "position": "D", "number": 4 },
+  { "first_name": "Josias", "last_name": "Lucero", "class": "SR", "position": "MF", "number": 5 },
+  { "first_name": "Merih", "last_name": "Andu", "class": "SR", "position": "D", "number": 6 },
+  { "first_name": "Milton", "last_name": "Medina", "class": "SR", "position": "D/MF", "number": 7 },
+  { "first_name": "Even", "last_name": "Tesfaselassie", "class": "JR", "position": "MF/F", "number": 8 },
+  { "first_name": "Kayden", "last_name": "DeMoss", "class": "JR", "position": "F", "number": 9 },
+  { "first_name": "Jose", "last_name": "Mata Rivera", "class": "JR", "position": "MF", "number": 10 },
+  { "first_name": "Kuma", "last_name": "Gutema", "class": "FR", "position": "F/MF", "number": 11 },
+  { "first_name": "Alex", "last_name": "Soldati", "class": "SR", "position": "D/F", "number": 13 },
+  { "first_name": "Christian", "last_name": "Vazquez", "class": "SR", "position": "D/MF", "number": 14 },
+  { "first_name": "Giancarlo", "last_name": "Lorenzana", "class": "JR", "position": "MF/F", "number": 15 },
+  { "first_name": "Pedro", "last_name": "Martinez", "class": "JR", "position": "D", "number": 16 },
+  { "first_name": "Herin", "last_name": "Merida Lima", "class": "JR", "position": "MF/D", "number": 17 },
+  { "first_name": "Jonathan", "last_name": "Ho", "class": "JR", "position": "GK/D", "number": 19 },
+  { "first_name": "Jensen", "last_name": "Wanderscheid", "class": "SO", "position": "D", "number": 21 },
+  { "first_name": "Cristian", "last_name": "Mendoza Garcia", "class": "SO", "position": "D/MF", "number": 22 },
+  { "first_name": "Dom", "last_name": "DeWall", "class": "SO", "position": "MF/D", "number": 23 },
+  { "first_name": "Petros", "last_name": "Kifle", "class": "SO", "position": "MF", "number": 30 },
+  { "first_name": "Hagos", "last_name": "Mekonnen", "class": "SO", "position": "MF/F", "number": 33 }
+]
+

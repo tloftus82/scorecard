@@ -19,3 +19,7 @@ jobs:
           username: tloftus@uru.soccer
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: /tom/scorecard/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            games/**
