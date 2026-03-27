@@ -328,6 +328,7 @@ function renderTeams() {
       <div class="admin-row">
         <div class="row-label">
           ${escHtml(t.name)} <span style="color:#aaa;font-weight:400;">(${t.year})</span>
+          ${t.is_active !== 0 ? '' : '<span style="background:#c0392b;color:#fff;font-size:10px;padding:1px 5px;border-radius:3px;margin-left:6px;">INACTIVE</span>'}
           <div class="row-sub">${escHtml(t.roster)}</div>
         </div>
         <div class="admin-row-actions">
@@ -342,6 +343,10 @@ function renderTeams() {
         </div>
         <div class="form-row"><label>Roster File</label><input id="tRoster_${i}" value="${escHtml(t.roster)}"></div>
         <div class="form-row"><label>New Password (leave blank to keep)</label><input type="password" id="tPass_${i}" placeholder="••••••"></div>
+        <div class="starter-toggle" style="margin-bottom:8px;">
+          <input type="checkbox" id="tActive_${i}" ${t.is_active !== 0 ? 'checked' : ''}>
+          <label for="tActive_${i}">Active (visible in app)</label>
+        </div>
         <div class="form-actions">
           <button class="btn-save" onclick="applyTeamEdit(${i})">Apply</button>
           <button class="btn-cancel" onclick="toggleTeamEdit(${i})">Cancel</button>
@@ -357,9 +362,10 @@ function toggleTeamEdit(i) {
 }
 
 function applyTeamEdit(i) {
-  teams[i].name   = document.getElementById('tName_' + i).value.trim();
-  teams[i].year   = parseInt(document.getElementById('tYear_' + i).value) || teams[i].year;
-  teams[i].roster = document.getElementById('tRoster_' + i).value.trim();
+  teams[i].name      = document.getElementById('tName_' + i).value.trim();
+  teams[i].year      = parseInt(document.getElementById('tYear_' + i).value) || teams[i].year;
+  teams[i].roster    = document.getElementById('tRoster_' + i).value.trim();
+  teams[i].is_active = document.getElementById('tActive_' + i).checked ? 1 : 0;
   const pw = document.getElementById('tPass_' + i).value;
   if (pw) teams[i].password = md5(pw);
   document.getElementById('teamEdit_' + i).classList.remove('open');
@@ -368,7 +374,7 @@ function applyTeamEdit(i) {
 }
 
 function addTeam() {
-  teams.push({ name: 'New Team', year: new Date().getFullYear(), roster: 'rosters/roster_new.json', password: '' });
+  teams.push({ name: 'New Team', year: new Date().getFullYear(), roster: 'rosters/roster_new.json', password: '', is_active: 1 });
   renderTeams();
   const i = teams.length - 1;
   document.getElementById('teamEdit_' + i).classList.add('open');

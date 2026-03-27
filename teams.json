@@ -3,13 +3,15 @@
         "name": "Sioux City North Girls",
         "year": 2026,
         "roster": "rosters/roster_scnorthg_2026.json",
-        "password": "202cb962ac59075b964b07152d234b70"
+        "password": "202cb962ac59075b964b07152d234b70",
+        "is_active": 1
     },
 
     {
         "name": "Sioux City North Girls",
         "year": 2025,
         "roster": "rosters/roster_scnorthg_2025.json",
-        "password": "202cb962ac59075b964b07152d234b70"
+        "password": "202cb962ac59075b964b07152d234b70",
+        "is_active": 1
     }
 ]

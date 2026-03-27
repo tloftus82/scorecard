@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
   loadGameButton.disabled = true;
   document.getElementById('startClockButton').classList.add('flash');
 
-  teamsList.slice().sort((a, b) => a.name.localeCompare(b.name)).forEach(team => {
+  teamsList.filter(t => t.is_active !== 0).slice().sort((a, b) => a.name.localeCompare(b.name)).forEach(team => {
     const option = document.createElement('option');
     option.value = team.roster;
     option.textContent = `${team.name} (${team.year})`;
