@@ -137,15 +137,11 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   function renderPlayers() {
-    const leftColumn = document.getElementById('leftColumn');
-    const centerColumn = document.getElementById('centerColumn');
-    const rightColumn = document.getElementById('rightColumn');
+    const container = document.getElementById('playerButtons');
     const sortSelect = document.getElementById('playerSortSelect');
-    const sortValue = sortSelect ? sortSelect.value : 'first';
+    const sortValue = sortSelect ? sortSelect.value : 'number';
 
-    leftColumn.innerHTML = '';
-    centerColumn.innerHTML = '';
-    rightColumn.innerHTML = '';
+    container.innerHTML = '';
 
     if (sortValue === 'first') {
         currentRoster.sort((a, b) => a.first_name.localeCompare(b.first_name));
@@ -154,11 +150,6 @@ document.addEventListener('DOMContentLoaded', function() {
     } else if (sortValue === 'number') {
         currentRoster.sort((a, b) => a.number - b.number);
     }
-
-    const third = Math.ceil(currentRoster.length / 3);
-    const col1 = currentRoster.slice(0, third);
-    const col2 = currentRoster.slice(third, third * 2);
-    const col3 = currentRoster.slice(third * 2);
 
     function createButton(player) {
       const button = document.createElement('button');
@@ -169,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <span class="player-number">${player.number}</span>
         <span class="player-name">${player.first_name} ${player.last_name}</span>
       `;
-      
+
       button.disabled = !saved;
 
       const hasPlayed = events.some(event => event.player === `${player.first_name} ${player.last_name}`);
@@ -185,25 +176,12 @@ document.addEventListener('DOMContentLoaded', function() {
       return button;
     }
 
-    col1.forEach(player => leftColumn.appendChild(createButton(player)));
-    col2.forEach(player => centerColumn.appendChild(createButton(player)));
-    col3.forEach(player => rightColumn.appendChild(createButton(player)));
+    currentRoster.forEach(player => container.appendChild(createButton(player)));
   }
 
   function renderEventButtons() {
-    const col1 = document.getElementById('eventCol1');
-    const col2 = document.getElementById('eventCol2');
-    const col3 = document.getElementById('eventCol3');
-
-    col1.innerHTML = '';
-    col2.innerHTML = '';
-    col3.innerHTML = '';
-
-    const eventsInOrder = [...eventsList];
-    const third = Math.ceil(eventsInOrder.length / 3);
-    const column1 = eventsInOrder.slice(0, third);
-    const column2 = eventsInOrder.slice(third, third * 2);
-    const column3 = eventsInOrder.slice(third * 2);
+    const container = document.getElementById('eventButtons');
+    container.innerHTML = '';
 
     function createEventButton(eventObj) {
       const button = document.createElement('button');
@@ -214,10 +192,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
       button.addEventListener('click', function () {
         if (!saved) return;
-          if (!selectedPlayerButton) {
-            alert('Select a player first!');
-            return;
-          }
+        if (!selectedPlayerButton) {
+          alert('Select a player first!');
+          return;
+        }
 
         if (selectedEventButton) {
           selectedEventButton.classList.remove('selected');
@@ -243,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
             minutes: Math.floor(clockSeconds / 60),
             seconds: clockSeconds % 60
           }
-        })
+        });
 
         switch (eventName) {
           case 'Goal':
@@ -268,25 +246,12 @@ document.addEventListener('DOMContentLoaded', function() {
       return button;
     }
 
-    column1.forEach(event => col1.appendChild(createEventButton(event)));
-    column2.forEach(event => col2.appendChild(createEventButton(event)));
-    column3.forEach(event => col3.appendChild(createEventButton(event)));
+    eventsList.forEach(event => container.appendChild(createEventButton(event)));
   }
 
   function renderOtherEventButtons() {
-    const col1 = document.getElementById('otherCol1');
-    const col2 = document.getElementById('otherCol2');
-    const col3 = document.getElementById('otherCol3');
-
-    col1.innerHTML = '';
-    col2.innerHTML = '';
-    col3.innerHTML = '';
-
-    const otherEventsInOrder = [...otherEvents];
-    const third = Math.ceil(otherEventsInOrder.length / 3);
-    const column1 = otherEventsInOrder.slice(0, third);
-    const column2 = otherEventsInOrder.slice(third, third * 2);
-    const column3 = otherEventsInOrder.slice(third * 2);
+    const container = document.getElementById('otherEventButtons');
+    container.innerHTML = '';
 
     function createOtherEventButton(eventObj) {
       const button = document.createElement('button');
@@ -313,30 +278,26 @@ document.addEventListener('DOMContentLoaded', function() {
             minutes: Math.floor(clockSeconds / 60),
             seconds: clockSeconds % 60
           }
-        })
+        });
 
         switch (eventName) {
           case 'Own Goal (Them)':
           case 'Own Goal (Us)':
             promptToStopClock();
             break;
-          }
+        }
 
         showNotification('<b>' + eventName + '</b>');
         renderEvents();
         updateScoreboard();
 
-        if (saved) {
-          saveGame();
-        }
+        if (saved) saveGame();
       });
 
       return button;
     }
 
-      column1.forEach(event => col1.appendChild(createOtherEventButton(event)));
-      column2.forEach(event => col2.appendChild(createOtherEventButton(event)));
-      column3.forEach(event => col3.appendChild(createOtherEventButton(event)));
+    otherEvents.forEach(event => container.appendChild(createOtherEventButton(event)));
   }
 
 
@@ -669,19 +630,7 @@ document.addEventListener('DOMContentLoaded', function() {
   renderPlayers();
   renderEventButtons();
 
-  setTimeout(() => {
-    const wrapper = document.querySelector('.scroll-wrapper');
-    if (wrapper) {
-      const centerX = (wrapper.scrollWidth - wrapper.clientWidth) / 2;
-      wrapper.scrollTo({
-        top: 0,
-        left: centerX,
-        behavior: 'auto'
-      });
-    }
-  }, 100); // Delay ensures layout is complete
-
-  function setOfflineOverlay(visible) {
+function setOfflineOverlay(visible) {
     document.getElementById('offlineOverlay').style.display = visible ? 'flex' : 'none';
   }
 

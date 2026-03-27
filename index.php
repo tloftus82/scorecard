@@ -26,7 +26,7 @@
   $eventsFile = 'events.json';
   $events = [];
   $events = json_decode(file_get_contents($eventsFile), true);
-  
+
   $otherEventsFile = 'other_events.json';
   $otherEvents = [];
   $otherEvents = json_decode(file_get_contents($otherEventsFile), true);
@@ -36,7 +36,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Soccer Stats Tracker</title>
     <link rel="stylesheet" href="css.css?nocache=<?php echo time(); ?>">
   </head>
@@ -45,78 +45,68 @@
       <div class="offline-message">No Internet Connection</div>
     </div>
 
-    <div class="scroll-wrapper">
-      <div class="container">
-
-        <div id="scoreboard" class="scoreboard">
-          <div class="score-clock-container">
-            <div id="usScore" class="score-number">0</div>
-
-            <div class="clock-info">
-              <div id="clockDisplay">40:00</div>
-              <div id="halfIndicator">1st Half</div>
-            </div>
-
-            <div id="themScore" class="score-number">0</div>
-          </div>
-
-          <div class="clock-buttons">
-            <button id="startClockButton">Start</button>
-            <button id="stopClockButton">Stop</button>
-            <button id="setClockButton">Set</button>
-          </div>
+    <div id="scoreboard">
+      <div class="score-clock-container">
+        <div id="usScore" class="score-number">0</div>
+        <div class="clock-info">
+          <div id="clockDisplay">40:00</div>
+          <div id="halfIndicator">1st Half</div>
         </div>
+        <div id="themScore" class="score-number">0</div>
+      </div>
+      <div class="clock-buttons">
+        <button id="startClockButton">Start</button>
+        <button id="stopClockButton">Stop</button>
+        <button id="setClockButton">Set</button>
+      </div>
+    </div>
 
-        <div class="opponent-section">
-          <select id="teamSelect">
-            <option value="">Select Team...</option>
-          </select>vs.
-          <input type="text" id="opponentInput" placeholder="Enter opponent name...">
+    <div class="container">
+
+      <div class="setup-section">
+        <select id="teamSelect">
+          <option value="">Select Team...</option>
+        </select>
+        <div class="vs-row">
+          <span class="vs-label">vs.</span>
+          <input type="text" id="opponentInput" placeholder="Opponent name...">
+        </div>
+        <div class="setup-buttons">
           <button id="saveGameButton">Save Game</button>
           <button id="loadGameButton">Load Game</button>
           <button id="scorecardButton">Scorecard</button>
         </div>
+      </div>
 
-        <div id="loadMenu" class="load-menu" style="display: none;"></div>
+      <div id="loadMenu" class="load-menu" style="display: none;"></div>
 
-        <div id="notification" class="notification"></div>
+      <div id="notification" class="notification"></div>
 
+      <div class="section-header">
         <h2>Select Player</h2>
         <div class="sort-container">
-          <span class="sort-label">Sort By:</span>
+          <span class="sort-label">Sort:</span>
           <select id="playerSortSelect">
-            <option value="number">Player #</option>        
-            <option value="first">First Name</option>        
-            <option value="last">Last Name</option>
+            <option value="number">No.</option>
+            <option value="first">First</option>
+            <option value="last">Last</option>
           </select>
         </div>
-
-        <div id="playerButtons" class="button-columns">
-          <div id="leftColumn"></div>
-          <div id="centerColumn"></div>
-          <div id="rightColumn"></div>
-        </div>
-
-        <h2>Select Event</h2>
-        <div id="eventButtons" class="button-columns">
-          <div id="eventCol1"></div>
-          <div id="eventCol2"></div>
-          <div id="eventCol3"></div>
-        </div>
-
-        <h2>Other Events</h2>
-        <div id="otherEventButtons" class="button-columns">
-          <div id="otherCol1"></div>
-          <div id="otherCol2"></div>
-          <div id="otherCol3"></div>
-        </div>
-
-        <h2>Game Events</h2>
-        <div class="event-window">
-          <ul id="eventList"></ul>
-        </div>
-
       </div>
+
+      <div id="playerButtons" class="player-grid"></div>
+
+      <h2>Select Event</h2>
+      <div id="eventButtons" class="event-grid"></div>
+
+      <h2>Other Events</h2>
+      <div id="otherEventButtons" class="event-grid"></div>
+
+      <h2>Game Events</h2>
+      <div class="event-window">
+        <ul id="eventList"></ul>
+      </div>
+
     </div>
 
     <div id="starterModal" class="modal">
