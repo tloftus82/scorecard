@@ -1,0 +1,17 @@
+[
+    { "name": "Shot", "us": 0, "them": 0 },
+    { "name": "Shot On Goal", "us": 0, "them": 0 },
+    { "name": "Goal", "us": 1, "them": 0 },
+    { "name": "Assist", "us": 0, "them": 0 },
+    { "name": "Corner Kick", "us": 0, "them": 0 },
+    { "name": "Save", "us": 0, "them": 0 },
+    { "name": "Goal Allowed", "us": 0, "them": 1 },
+    { "name": "PK (Scored)", "us": 1, "them": 0 },
+    { "name": "PK (Missed)", "us": 0, "them": 0 },
+    { "name": "PK Against (Scored)", "us": 0, "them": 1 },
+    { "name": "PK Against (Missed)", "us": 0, "them": 0 },
+    { "name": "Yellow Card", "us": 0, "them": 0 },
+    { "name": "Entered Game (Starter)", "us": 0, "them": 0 },
+    { "name": "Entered Game (Sub)", "us": 0, "them": 0 }
+]
+
