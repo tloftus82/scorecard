@@ -86,7 +86,6 @@
         <div class="setup-buttons">
           <button id="saveGameButton">Save Game</button>
           <button id="loadGameButton">Load Game</button>
-          <button id="scorecardButton">Scorecard</button>
         </div>
       </div>
 
@@ -118,6 +117,8 @@
       <div class="event-window">
         <ul id="eventList"></ul>
       </div>
+
+      <button id="scorecardButton" class="scorecard-bottom-btn">Scorecard</button>
 
     </div>
 
