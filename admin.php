@@ -74,7 +74,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (strpos($file, 'rosters/') !== 0) {
                 http_response_code(400); echo json_encode(['ok' => false, 'error' => 'Invalid path']); exit;
             }
-            file_put_contents($file, json_encode($data['roster'], JSON_PRETTY_PRINT));
+            // Strip out blank players (no first or last name)
+            $roster = array_values(array_filter($data['roster'], function($p) {
+                return !empty(trim($p['first_name'])) || !empty(trim($p['last_name']));
+            }));
+            file_put_contents($file, json_encode($roster, JSON_PRETTY_PRINT));
             echo json_encode(['ok' => true]);
             break;
 
