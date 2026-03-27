@@ -393,10 +393,10 @@ li span {
 
 li button {
   background-color: #e74c3c;
-  padding: 0 14px;
+  padding: 6px 14px;
   font-size: 15px;
   font-weight: 600;
-  min-height: 60px;
+  height: auto;
   border-radius: 6px;
   flex-shrink: 0;
 }
