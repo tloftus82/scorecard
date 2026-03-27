@@ -571,6 +571,24 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('startClockButton').addEventListener('click', startClock);
   document.getElementById('stopClockButton').addEventListener('click', stopClock);
   document.getElementById('setClockButton').addEventListener('click', setClock);
+
+  document.getElementById('startFirstHalfButton').addEventListener('click', function() {
+    stopClock();
+    clockSeconds = 40 * 60;
+    currentHalf = 1;
+    document.getElementById('halfIndicator').textContent = '1st Half';
+    updateClockDisplay();
+    startClock();
+  });
+
+  document.getElementById('startSecondHalfButton').addEventListener('click', function() {
+    stopClock();
+    clockSeconds = 40 * 60;
+    currentHalf = 2;
+    document.getElementById('halfIndicator').textContent = '2nd Half';
+    updateClockDisplay();
+    startClock();
+  });
   updateClockDisplay();
   setButtonState('startClockButton', true);
   setButtonState('stopClockButton', false);
