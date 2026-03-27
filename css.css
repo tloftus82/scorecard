@@ -43,8 +43,6 @@ body, html {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex: 1;
-  justify-content: center;
 }
 
 .score-wrap {
