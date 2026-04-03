@@ -38,6 +38,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    function cleanPlayerName($name) {
+        // Strip captain indicators: trailing (C), C, *C*
+        $name = preg_replace('/\s+\(?C\)?\s*$/i', '', $name);
+        // Collapse whitespace
+        $name = trim(preg_replace('/\s+/', ' ', $name));
+        // Init-cap, handling hyphens and apostrophes
+        $name = ucwords(strtolower($name), " \t\r\n\f\v-'");
+        return $name;
+    }
+
     switch ($action) {
         case 'save_teams':
             foreach ($data['teams'] as &$t) {
@@ -151,21 +161,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             libxml_clear_errors();
             $xpath = new DOMXPath($dom);
 
-            // Team name — try h1, then title
+            // Gender from URL sport segment
+            $sportGender = '';
+            if (preg_match('#gobound\.com/[^/]+/[^/]+/([^/]+)/#', $url, $sportM)) {
+                $sport = strtolower($sportM[1]);
+                if (strpos($sport, 'girl') !== false || strpos($sport, 'women') !== false) $sportGender = '(Girls)';
+                elseif (strpos($sport, 'boy') !== false || strpos($sport, 'men') !== false) $sportGender = '(Boys)';
+            }
+
+            // Team name — prefer og:title, then page title, then h1/h2
             $teamName = '';
-            foreach ($xpath->query('//h1') as $node) {
-                $t = trim($node->textContent);
-                if ($t) { $teamName = $t; break; }
+            $nameCandidates = [];
+            foreach ($xpath->query('//meta[@property="og:title"]/@content') as $n) { $nameCandidates[] = trim($n->nodeValue); }
+            foreach ($xpath->query('//title') as $n) { $nameCandidates[] = trim($n->textContent); }
+            foreach ($xpath->query('//h1') as $n) { $t = trim($n->textContent); if ($t) $nameCandidates[] = $t; }
+            foreach ($xpath->query('//h2') as $n) { $t = trim($n->textContent); if ($t) $nameCandidates[] = $t; }
+            foreach ($nameCandidates as $c) {
+                if (preg_match('/^(bound|roster|varsity|jv|home|schedule|stats)$/i', trim($c))) continue;
+                $teamName = $c; break;
             }
-            if (!$teamName) {
-                $titleNodes = $xpath->query('//title');
-                if ($titleNodes->length) $teamName = trim($titleNodes->item(0)->textContent);
-            }
-            // Strip common suffixes
-            $teamName = preg_replace('/\s*[\|\-–]\s*.+$/', '', $teamName);
+            // Strip site suffix (| Bound, - Bound, etc.)
+            $teamName = preg_replace('/\s*[\|\-–—]\s*(Bound|GoFan|NFHS|MaxPreps).*$/i', '', $teamName);
+            // Strip year range
             $teamName = preg_replace('/\s*\d{4}-\d{2,4}\s*/', ' ', $teamName);
-            $teamName = preg_replace('/\s*(Roster|Soccer|Football|Basketball|Varsity|JV)\s*/i', ' ', $teamName);
+            // Strip page-type words
+            $teamName = preg_replace('/\s*\b(Roster|Schedule|Stats|Varsity|JV|Junior Varsity)\b\s*/i', ' ', $teamName);
+            // Strip gender+sport combos and standalone sport/gender (we re-add gender below)
+            $sports = 'Soccer|Football|Basketball|Baseball|Softball|Volleyball|Wrestling|Track|Tennis|Golf|Swimming|Lacrosse';
+            $teamName = preg_replace('/\s*\b(Girls|Boys|Women\'s|Men\'s|Women|Men)\b\s*\b(' . $sports . ')\b\s*/i', ' ', $teamName);
+            $teamName = preg_replace('/\s*\b(' . $sports . ')\b\s*/i', ' ', $teamName);
+            $teamName = preg_replace('/\s*\b(Girls|Boys|Women\'s|Men\'s|Women|Men)\b\s*/i', ' ', $teamName);
             $teamName = trim(preg_replace('/\s+/', ' ', $teamName));
+            if ($sportGender && stripos($teamName, 'Girls') === false && stripos($teamName, 'Boys') === false) {
+                $teamName .= ' ' . $sportGender;
+            }
 
             // Try to find embedded JSON (Next.js / embedded state)
             $players = [];
@@ -197,10 +226,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $classMap  = ['9'=>'FR','10'=>'SO','11'=>'JR','12'=>'SR','freshman'=>'FR','sophomore'=>'SO','junior'=>'JR','senior'=>'SR'];
                         $classNorm = strtoupper($classRaw);
                         $classFinal = $classMap[$classRaw] ?? (in_array($classNorm, ['FR','SO','JR','SR']) ? $classNorm : '');
+                        $numStr = (string)($p['number'] ?? $p['jersey'] ?? $p['jersey_number'] ?? '');
                         $players[] = [
-                            'first_name'      => trim($first),
-                            'last_name'       => trim($last),
-                            'number'          => intval(preg_replace('/[^0-9]/', '', $p['number'] ?? $p['jersey'] ?? $p['jersey_number'] ?? '0')),
+                            'first_name'      => cleanPlayerName($first),
+                            'last_name'       => cleanPlayerName($last),
+                            'number'          => strlen(preg_replace('/[^0-9]/', '', $numStr)) ? intval(preg_replace('/[^0-9]/', '', $numStr)) : 0,
                             'position'        => $p['position'] ?? $p['pos'] ?? '',
                             'class'           => $classFinal,
                             'default_starter' => 0
@@ -238,7 +268,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $cells = $xpath->query('.//td', $row);
                         if (!$cells->length) continue;
                         $nameRaw  = $nameIdx  >= 0 && $cells->length > $nameIdx  ? trim($cells->item($nameIdx)->textContent)  : '';
-                        $numRaw   = $numIdx   >= 0 && $cells->length > $numIdx   ? trim($cells->item($numIdx)->textContent)   : '0';
+                        $numRaw   = $numIdx   >= 0 && $cells->length > $numIdx   ? trim($cells->item($numIdx)->textContent)   : '';
                         $posRaw   = $posIdx   >= 0 && $cells->length > $posIdx   ? trim($cells->item($posIdx)->textContent)   : '';
                         $classRaw = $classIdx >= 0 && $cells->length > $classIdx ? trim($cells->item($classIdx)->textContent) : '';
                         if (!$nameRaw) continue;
@@ -251,10 +281,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $classMap  = ['9'=>'FR','10'=>'SO','11'=>'JR','12'=>'SR','freshman'=>'FR','sophomore'=>'SO','junior'=>'JR','senior'=>'SR'];
                         $classNorm = strtoupper(trim($classRaw));
                         $classFinal = $classMap[strtolower($classRaw)] ?? (in_array($classNorm, ['FR','SO','JR','SR']) ? $classNorm : '');
+                        $numDigits = preg_replace('/[^0-9]/', '', $numRaw);
                         $players[] = [
-                            'first_name'      => trim($first),
-                            'last_name'       => trim($last),
-                            'number'          => intval(preg_replace('/[^0-9]/', '', $numRaw)),
+                            'first_name'      => cleanPlayerName($first),
+                            'last_name'       => cleanPlayerName($last),
+                            'number'          => strlen($numDigits) ? intval($numDigits) : 0,
                             'position'        => trim($posRaw),
                             'class'           => $classFinal,
                             'default_starter' => 0
@@ -414,7 +445,8 @@ $isAdmin    = !empty($_SESSION['admin']);
       <button class="btn-edit" style="font-size:12px;height:28px;padding:0 10px;" onclick="importToggleAll(false)">Uncheck All</button>
       <span id="importStarterCount" style="font-size:12px;color:#aaa;margin-left:4px;"></span>
     </div>
-    <div class="section-save-row" style="margin-top:10px;">
+    <div class="form-actions" style="margin-top:10px;justify-content:flex-end;">
+      <button class="btn-cancel" onclick="cancelImport()">Cancel</button>
       <button class="btn-save" onclick="saveImportedRoster()">Save Roster</button>
     </div>
   </div>
@@ -928,7 +960,7 @@ function renderImportPreview() {
     row.innerHTML = `
       <input type="checkbox" id="imp_${i}" ${p.default_starter ? 'checked' : ''}
              style="width:18px;height:18px;flex-shrink:0;accent-color:#2ecc71;" onchange="updateImportStarter(${i},this.checked)">
-      <span style="background:rgba(255,255,255,0.12);border-radius:4px;padding:1px 6px;font-size:12px;min-width:28px;text-align:center;flex-shrink:0;">${p.number || '—'}</span>
+      <span style="background:rgba(255,255,255,0.12);border-radius:4px;padding:1px 6px;font-size:12px;min-width:28px;text-align:center;flex-shrink:0;">${p.number ?? '—'}</span>
       <span style="flex:1;font-size:14px;">${escHtml(p.first_name)} ${escHtml(p.last_name)}</span>
       <span style="font-size:11px;color:#aaa;flex-shrink:0;">${escHtml(p.position)}${p.position && p.class ? ' · ' : ''}${escHtml(p.class)}</span>
       <label for="imp_${i}" style="font-size:11px;color:#2ecc71;width:10px;text-align:center;flex-shrink:0;">${p.default_starter ? '★' : ''}</label>`;
@@ -960,6 +992,13 @@ function importToggleAll(checked) {
     if (label) label.textContent = checked ? '★' : '';
   });
   updateImportStarterCount();
+}
+
+function cancelImport() {
+  document.getElementById('importPreview').style.display = 'none';
+  document.getElementById('importUrl').value = '';
+  document.getElementById('importError').style.display = 'none';
+  importedPlayers = [];
 }
 
 async function saveImportedRoster() {
