@@ -92,6 +92,199 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             break;
 
+        case 'fetch_roster_url':
+            $url = trim($data['url'] ?? '');
+            if (!preg_match('#^https?://www\.gobound\.com/#i', $url)) {
+                http_response_code(400);
+                echo json_encode(['ok' => false, 'error' => 'Only gobound.com URLs are supported']);
+                exit;
+            }
+
+            // Extract year from URL (e.g. /2025-26/ → 2026)
+            $year = 0;
+            if (preg_match('#/(\d{4})-(\d{2,4})/#', $url, $ym)) {
+                $y2 = $ym[2];
+                $year = intval(strlen($y2) === 2 ? '20' . $y2 : $y2);
+            }
+
+            // Extract school code from URL
+            $schoolCode = '';
+            if (preg_match('#gobound\.com/[^/]+/[^/]+/[^/]+/[^/]+/([^/]+)/#', $url, $sm)) {
+                $schoolCode = $sm[1];
+            }
+
+            // Fetch page
+            $html = false;
+            if (function_exists('curl_init')) {
+                $ch = curl_init();
+                curl_setopt_array($ch, [
+                    CURLOPT_URL            => $url,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_TIMEOUT        => 15,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_USERAGENT      => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+                    CURLOPT_HTTPHEADER     => ['Accept: text/html,application/xhtml+xml', 'Accept-Language: en-US,en;q=0.9']
+                ]);
+                $html    = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+                if ($httpCode !== 200) $html = false;
+            }
+            if (!$html) {
+                $ctx = stream_context_create(['http' => [
+                    'user_agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
+                    'timeout'    => 15
+                ]]);
+                $html = @file_get_contents($url, false, $ctx);
+            }
+            if (!$html) {
+                http_response_code(400);
+                echo json_encode(['ok' => false, 'error' => 'Could not fetch the URL. The site may block automated requests.']);
+                exit;
+            }
+
+            // Parse HTML
+            $dom = new DOMDocument();
+            libxml_use_internal_errors(true);
+            $dom->loadHTML('<?xml encoding="UTF-8">' . $html);
+            libxml_clear_errors();
+            $xpath = new DOMXPath($dom);
+
+            // Team name — try h1, then title
+            $teamName = '';
+            foreach ($xpath->query('//h1') as $node) {
+                $t = trim($node->textContent);
+                if ($t) { $teamName = $t; break; }
+            }
+            if (!$teamName) {
+                $titleNodes = $xpath->query('//title');
+                if ($titleNodes->length) $teamName = trim($titleNodes->item(0)->textContent);
+            }
+            // Strip common suffixes
+            $teamName = preg_replace('/\s*[\|\-–]\s*.+$/', '', $teamName);
+            $teamName = preg_replace('/\s*\d{4}-\d{2,4}\s*/', ' ', $teamName);
+            $teamName = preg_replace('/\s*(Roster|Soccer|Football|Basketball|Varsity|JV)\s*/i', ' ', $teamName);
+            $teamName = trim(preg_replace('/\s+/', ' ', $teamName));
+
+            // Try to find embedded JSON (Next.js / embedded state)
+            $players = [];
+            foreach ($xpath->query('//script[@id="__NEXT_DATA__"]') as $script) {
+                $json = @json_decode($script->textContent, true);
+                if (!$json) continue;
+                // Walk the JSON looking for arrays that look like player arrays
+                $flat = new RecursiveIteratorIterator(new RecursiveArrayIterator($json));
+                foreach ($flat as $val) { /* just checking if json decoded */ }
+                // Try common paths
+                $roster = $json['props']['pageProps']['roster']
+                       ?? $json['props']['pageProps']['athletes']
+                       ?? $json['props']['pageProps']['players']
+                       ?? null;
+                if (is_array($roster) && count($roster)) {
+                    foreach ($roster as $p) {
+                        $first = $p['first_name'] ?? $p['firstName'] ?? '';
+                        $last  = $p['last_name']  ?? $p['lastName']  ?? '';
+                        if (!$first && !$last) {
+                            $full = $p['name'] ?? $p['fullName'] ?? '';
+                            if (strpos($full, ',') !== false) {
+                                [$last, $first] = array_map('trim', explode(',', $full, 2));
+                            } else {
+                                $parts = explode(' ', $full, 2);
+                                $first = $parts[0]; $last = $parts[1] ?? '';
+                            }
+                        }
+                        $classRaw  = strtolower($p['grade'] ?? $p['class_year'] ?? $p['year'] ?? $p['grade_level'] ?? '');
+                        $classMap  = ['9'=>'FR','10'=>'SO','11'=>'JR','12'=>'SR','freshman'=>'FR','sophomore'=>'SO','junior'=>'JR','senior'=>'SR'];
+                        $classNorm = strtoupper($classRaw);
+                        $classFinal = $classMap[$classRaw] ?? (in_array($classNorm, ['FR','SO','JR','SR']) ? $classNorm : '');
+                        $players[] = [
+                            'first_name'      => trim($first),
+                            'last_name'       => trim($last),
+                            'number'          => intval(preg_replace('/[^0-9]/', '', $p['number'] ?? $p['jersey'] ?? $p['jersey_number'] ?? '0')),
+                            'position'        => $p['position'] ?? $p['pos'] ?? '',
+                            'class'           => $classFinal,
+                            'default_starter' => 0
+                        ];
+                    }
+                    break;
+                }
+            }
+
+            // Fallback: parse HTML table
+            if (empty($players)) {
+                foreach ($xpath->query('//table') as $table) {
+                    $headers = [];
+                    foreach ($xpath->query('.//thead/tr[1]/th | .//thead/tr[1]/td', $table) as $th) {
+                        $headers[] = strtolower(trim(preg_replace('/\s+/', ' ', $th->textContent)));
+                    }
+                    if (empty($headers)) {
+                        foreach ($xpath->query('.//tr[1]/th | .//tr[1]/td', $table) as $th) {
+                            $headers[] = strtolower(trim(preg_replace('/\s+/', ' ', $th->textContent)));
+                        }
+                    }
+
+                    $nameIdx = $numIdx = $posIdx = $classIdx = -1;
+                    foreach ($headers as $idx => $h) {
+                        if (in_array($h, ['name','player','athlete','full name','athlete name'])) $nameIdx = $idx;
+                        if (in_array($h, ['#','no','no.','num','number','jersey','jersey #'])) $numIdx = $idx;
+                        if (in_array($h, ['pos','position','pos.'])) $posIdx = $idx;
+                        if (in_array($h, ['yr','year','grade','cl','class','gr','grade level'])) $classIdx = $idx;
+                    }
+                    if ($nameIdx === -1) continue;
+
+                    $rows = $xpath->query('.//tbody/tr', $table);
+                    if (!$rows->length) $rows = $xpath->query('.//tr[position()>1]', $table);
+                    foreach ($rows as $row) {
+                        $cells = $xpath->query('.//td', $row);
+                        if (!$cells->length) continue;
+                        $nameRaw  = $nameIdx  >= 0 && $cells->length > $nameIdx  ? trim($cells->item($nameIdx)->textContent)  : '';
+                        $numRaw   = $numIdx   >= 0 && $cells->length > $numIdx   ? trim($cells->item($numIdx)->textContent)   : '0';
+                        $posRaw   = $posIdx   >= 0 && $cells->length > $posIdx   ? trim($cells->item($posIdx)->textContent)   : '';
+                        $classRaw = $classIdx >= 0 && $cells->length > $classIdx ? trim($cells->item($classIdx)->textContent) : '';
+                        if (!$nameRaw) continue;
+                        if (strpos($nameRaw, ',') !== false) {
+                            [$last, $first] = array_map('trim', explode(',', $nameRaw, 2));
+                        } else {
+                            $parts = explode(' ', $nameRaw, 2);
+                            $first = $parts[0]; $last = $parts[1] ?? '';
+                        }
+                        $classMap  = ['9'=>'FR','10'=>'SO','11'=>'JR','12'=>'SR','freshman'=>'FR','sophomore'=>'SO','junior'=>'JR','senior'=>'SR'];
+                        $classNorm = strtoupper(trim($classRaw));
+                        $classFinal = $classMap[strtolower($classRaw)] ?? (in_array($classNorm, ['FR','SO','JR','SR']) ? $classNorm : '');
+                        $players[] = [
+                            'first_name'      => trim($first),
+                            'last_name'       => trim($last),
+                            'number'          => intval(preg_replace('/[^0-9]/', '', $numRaw)),
+                            'position'        => trim($posRaw),
+                            'class'           => $classFinal,
+                            'default_starter' => 0
+                        ];
+                    }
+                    if (!empty($players)) break;
+                }
+            }
+
+            if (empty($players)) {
+                echo json_encode(['ok' => false, 'error' => 'Could not find roster data on the page. The site may load data via JavaScript — try saving the page HTML and importing manually.']);
+                exit;
+            }
+
+            // Sort by jersey number
+            usort($players, fn($a,$b) => $a['number'] - $b['number']);
+
+            // Suggested roster filename
+            $codeClean = preg_replace('/[^a-z0-9]/', '', strtolower($schoolCode));
+            $suggestedFile = 'rosters/roster_' . $codeClean . '_' . $year . '.json';
+
+            echo json_encode([
+                'ok'             => true,
+                'team_name'      => $teamName,
+                'year'           => $year,
+                'suggested_file' => $suggestedFile,
+                'players'        => $players
+            ]);
+            break;
+
         default:
             http_response_code(400);
             echo json_encode(['ok' => false, 'error' => 'Unknown action']);
@@ -179,6 +372,51 @@ $isAdmin    = !empty($_SESSION['admin']);
   <button class="btn-add" onclick="addTeam()">+ Add Team</button>
   <div class="section-save-row">
     <button class="btn-save" onclick="saveTeams()">Save Teams</button>
+  </div>
+</div>
+
+<!-- ══ IMPORT FROM GOBOUND ═══════════════════════════════════════ -->
+<div class="admin-section" id="importSection">
+  <h2>Import Roster from Gobound URL</h2>
+  <div class="form-row" style="margin-bottom:8px;">
+    <label>Gobound Roster URL</label>
+    <div style="display:flex;gap:6px;">
+      <input id="importUrl" type="url" placeholder="https://www.gobound.com/ia/ighsau/girlssoccer/2025-26/scnorth/v/roster" style="flex:1;">
+      <button class="btn-save" style="flex-shrink:0;white-space:nowrap;" onclick="fetchGoboundRoster()">Fetch</button>
+    </div>
+  </div>
+  <div id="importError" style="color:#e74c3c;font-size:13px;display:none;margin-bottom:8px;"></div>
+  <div id="importPreview" style="display:none;">
+    <div class="form-row-inline" style="margin-bottom:8px;">
+      <div class="form-row"><label>Team Name</label><input id="importTeamName"></div>
+      <div class="form-row" style="max-width:80px;"><label>Year</label><input id="importYear" type="number"></div>
+    </div>
+    <div class="form-row" style="margin-bottom:8px;">
+      <label>Roster File Path</label>
+      <input id="importFile">
+    </div>
+    <div class="form-row-inline" style="margin-bottom:8px;">
+      <div class="form-row"><label>Team Password (for app login)</label><input type="password" id="importPassword" placeholder="set a password"></div>
+      <div class="form-row" style="max-width:120px;">
+        <label>&nbsp;</label>
+        <div class="starter-toggle" style="margin-top:8px;">
+          <input type="checkbox" id="importAddTeam" checked>
+          <label for="importAddTeam">Add to Teams</label>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#aaa;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px;">
+      Players — check ★ to mark as default starter
+    </div>
+    <div id="importPlayerList" style="max-height:320px;overflow-y:auto;border:1px solid #333;border-radius:6px;padding:4px 0;"></div>
+    <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
+      <button class="btn-edit" style="font-size:12px;height:28px;padding:0 10px;" onclick="importToggleAll(true)">Check All</button>
+      <button class="btn-edit" style="font-size:12px;height:28px;padding:0 10px;" onclick="importToggleAll(false)">Uncheck All</button>
+      <span id="importStarterCount" style="font-size:12px;color:#aaa;margin-left:4px;"></span>
+    </div>
+    <div class="section-save-row" style="margin-top:10px;">
+      <button class="btn-save" onclick="saveImportedRoster()">Save Roster</button>
+    </div>
   </div>
 </div>
 
@@ -642,6 +880,122 @@ function md5(s) {
   // Simple MD5 via the existing blueimp library loaded on main page — not available here.
   // We'll send plain text to PHP for hashing instead.
   return '__plain__' + s;
+}
+
+// ══ IMPORT FROM GOBOUND ════════════════════════════════════════
+let importedPlayers = [];
+
+async function fetchGoboundRoster() {
+  const url = document.getElementById('importUrl').value.trim();
+  const errEl = document.getElementById('importError');
+  const previewEl = document.getElementById('importPreview');
+  errEl.style.display = 'none';
+  previewEl.style.display = 'none';
+  importedPlayers = [];
+
+  if (!url) { errEl.textContent = 'Please enter a URL.'; errEl.style.display = 'block'; return; }
+
+  const btn = document.querySelector('#importSection .btn-save');
+  const origText = btn.textContent;
+  btn.textContent = 'Fetching…';
+  btn.disabled = true;
+
+  const r = await api({ action: 'fetch_roster_url', url });
+  btn.textContent = origText;
+  btn.disabled = false;
+
+  if (!r.ok) {
+    errEl.textContent = r.error || 'Failed to fetch roster.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  importedPlayers = r.players;
+  document.getElementById('importTeamName').value = r.team_name || '';
+  document.getElementById('importYear').value      = r.year      || new Date().getFullYear();
+  document.getElementById('importFile').value      = r.suggested_file || '';
+  document.getElementById('importPassword').value  = '';
+  renderImportPreview();
+  previewEl.style.display = 'block';
+}
+
+function renderImportPreview() {
+  const el = document.getElementById('importPlayerList');
+  el.innerHTML = '';
+  importedPlayers.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:5px 10px;border-bottom:1px solid #2a2a2a;';
+    row.innerHTML = `
+      <input type="checkbox" id="imp_${i}" ${p.default_starter ? 'checked' : ''}
+             style="width:18px;height:18px;flex-shrink:0;accent-color:#2ecc71;" onchange="updateImportStarter(${i},this.checked)">
+      <span style="background:rgba(255,255,255,0.12);border-radius:4px;padding:1px 6px;font-size:12px;min-width:28px;text-align:center;flex-shrink:0;">${p.number || '—'}</span>
+      <span style="flex:1;font-size:14px;">${escHtml(p.first_name)} ${escHtml(p.last_name)}</span>
+      <span style="font-size:11px;color:#aaa;flex-shrink:0;">${escHtml(p.position)}${p.position && p.class ? ' · ' : ''}${escHtml(p.class)}</span>
+      <label for="imp_${i}" style="font-size:11px;color:#2ecc71;width:10px;text-align:center;flex-shrink:0;">${p.default_starter ? '★' : ''}</label>`;
+    el.appendChild(row);
+  });
+  updateImportStarterCount();
+}
+
+function updateImportStarter(i, checked) {
+  importedPlayers[i].default_starter = checked ? 1 : 0;
+  // Update star label
+  const label = document.querySelector(`label[for="imp_${i}"]`);
+  if (label) label.textContent = checked ? '★' : '';
+  updateImportStarterCount();
+}
+
+function updateImportStarterCount() {
+  const count = importedPlayers.filter(p => p.default_starter).length;
+  document.getElementById('importStarterCount').textContent =
+    count + ' starter' + (count !== 1 ? 's' : '') + ' selected' + (count === 11 ? ' ✓' : count > 11 ? ' — too many!' : '');
+}
+
+function importToggleAll(checked) {
+  importedPlayers.forEach((p, i) => {
+    p.default_starter = checked ? 1 : 0;
+    const cb = document.getElementById('imp_' + i);
+    if (cb) cb.checked = checked;
+    const label = document.querySelector(`label[for="imp_${i}"]`);
+    if (label) label.textContent = checked ? '★' : '';
+  });
+  updateImportStarterCount();
+}
+
+async function saveImportedRoster() {
+  const file     = document.getElementById('importFile').value.trim();
+  const teamName = document.getElementById('importTeamName').value.trim();
+  const year     = parseInt(document.getElementById('importYear').value) || new Date().getFullYear();
+  const password = document.getElementById('importPassword').value;
+  const addTeam  = document.getElementById('importAddTeam').checked;
+
+  if (!file || !file.startsWith('rosters/')) {
+    showNotification('Roster file path must start with rosters/', 'warning'); return;
+  }
+  if (!teamName) { showNotification('Team name is required.', 'warning'); return; }
+  if (addTeam && !password) { showNotification('Password is required to add the team.', 'warning'); return; }
+
+  // Save roster file
+  const r = await api({ action: 'save_roster', file, roster: importedPlayers });
+  if (!r.ok) { showNotification('Error saving roster: ' + r.error, 'warning'); return; }
+
+  // Add to teams list if requested
+  if (addTeam) {
+    teams.push({ name: teamName, year, roster: file, password: md5(password), is_active: 1 });
+    const tr = await api({ action: 'save_teams', teams });
+    if (!tr.ok) { showNotification('Roster saved but error adding team: ' + tr.error, 'warning'); return; }
+    // Refresh roster dropdown
+    const sel = document.getElementById('rosterTeamSelect');
+    const o = document.createElement('option');
+    o.value = file; o.textContent = teamName + ' (' + year + ')';
+    sel.appendChild(o);
+    renderTeams();
+  }
+
+  showNotification('Roster saved' + (addTeam ? ' and team added!' : '!'));
+  document.getElementById('importPreview').style.display = 'none';
+  document.getElementById('importUrl').value = '';
+  importedPlayers = [];
 }
 
 // ── Init ────────────────────────────────────────────────────────
