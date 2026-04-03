@@ -169,32 +169,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 elseif (strpos($sport, 'boy') !== false || strpos($sport, 'men') !== false) $sportGender = '(Boys)';
             }
 
-            // Team name — try breadcrumb nav first (most reliable), then og:title, then title, then h1
+            // Team name — split og:title and page title by pipe/dash, take first meaningful segment
+            // (Bound pages: "Bound | Sioux City West Wolverines | |" → "Sioux City West Wolverines")
             $teamName = '';
             $skipWords = '/^(bound|gobound|home|roster|varsity|jv|junior varsity|schedule|stats|iowa|ighsau|soccer|football|basketball|\d{4}(-\d+)?)$/i';
 
-            // Breadcrumb: look for nav links, school name is typically second-to-last meaningful link
-            foreach (['//nav//a', '//*[contains(@class,"breadcrumb")]//a', '//*[contains(@class,"Breadcrumb")]//a'] as $bq) {
-                $links = $xpath->query($bq);
-                if ($links->length < 2) continue;
-                for ($li = $links->length - 1; $li >= 0; $li--) {
-                    $t = trim($links->item($li)->textContent);
-                    if (!$t || preg_match($skipWords, $t)) continue;
-                    $teamName = $t; break 2;
-                }
-            }
-
-            // og:title / page title: split by pipe and take first meaningful segment
-            if (!$teamName) {
-                $titleSources = [];
-                foreach ($xpath->query('//meta[@property="og:title"]/@content') as $n) { $titleSources[] = trim($n->nodeValue); }
-                foreach ($xpath->query('//title') as $n) { $titleSources[] = trim($n->textContent); }
-                foreach ($titleSources as $raw) {
-                    $parts = array_filter(array_map('trim', preg_split('/\s*[\|\-–—]\s*/', $raw)));
-                    foreach ($parts as $part) {
-                        if (preg_match($skipWords, $part) || strlen($part) < 3) continue;
-                        $teamName = $part; break 2;
-                    }
+            $titleSources = [];
+            foreach ($xpath->query('//meta[@property="og:title"]/@content') as $n) { $titleSources[] = trim($n->nodeValue); }
+            foreach ($xpath->query('//title') as $n) { $titleSources[] = trim($n->textContent); }
+            foreach ($titleSources as $raw) {
+                $parts = array_filter(array_map('trim', preg_split('/\s*[\|\-–—]\s*/', $raw)));
+                foreach ($parts as $part) {
+                    if (preg_match($skipWords, $part) || strlen($part) < 3) continue;
+                    $teamName = $part; break 2;
                 }
             }
 
@@ -1000,7 +987,10 @@ function renderImportPreview() {
       <input type="text" value="${escHtml(p.last_name)}" placeholder="Last"
              style="flex:1;min-width:60px;font-size:13px;padding:2px 6px;height:26px;background:#1a1a1a;border:1px solid #444;border-radius:4px;color:#e0e0e0;"
              oninput="importedPlayers[${i}].last_name=this.value">
-      <span style="font-size:11px;color:#aaa;flex-shrink:0;min-width:40px;">${escHtml(p.class)}</span>
+      <select style="width:52px;flex-shrink:0;font-size:12px;padding:2px;height:26px;background:#1a1a1a;border:1px solid #444;border-radius:4px;color:#e0e0e0;"
+              onchange="importedPlayers[${i}].class=this.value">
+        ${['FR','SO','JR','SR'].map(c => `<option ${c===p.class?'selected':''}>${c}</option>`).join('')}
+      </select>
       <label for="imp_${i}" style="font-size:13px;color:#2ecc71;width:14px;text-align:center;flex-shrink:0;cursor:pointer;">${p.default_starter ? '★' : '☆'}</label>`;
     el.appendChild(row);
   });
