@@ -1085,9 +1085,10 @@ renderGames();
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
 <script>
-// Override md5 shim now that real library is loaded
+// Override md5 shim — capture blueimp's real md5 BEFORE redefining window.md5
 <?php if ($isAdmin): ?>
-function md5(s) { return window.md5 ? window.md5(s) : s; }
+var _realMd5 = window.md5;
+window.md5 = function(s) { return _realMd5 ? _realMd5(s) : s; };
 <?php endif; ?>
 </script>
 </body>
