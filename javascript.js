@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } else if (sortValue === 'last') {
       currentRoster.sort((a, b) => a.last_name.localeCompare(b.last_name));
     } else {
-      currentRoster.sort((a, b) => a.number - b.number);
+      currentRoster.sort((a, b) => (parseInt(a.number) || 0) - (parseInt(b.number) || 0));
     }
 
     currentRoster.forEach(player => {

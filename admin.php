@@ -169,28 +169,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 elseif (strpos($sport, 'boy') !== false || strpos($sport, 'men') !== false) $sportGender = '(Boys)';
             }
 
-            // Team name — prefer og:title, then page title, then h1/h2
+            // Team name — try breadcrumb nav first (most reliable), then og:title, then title, then h1
             $teamName = '';
-            $nameCandidates = [];
-            foreach ($xpath->query('//meta[@property="og:title"]/@content') as $n) { $nameCandidates[] = trim($n->nodeValue); }
-            foreach ($xpath->query('//title') as $n) { $nameCandidates[] = trim($n->textContent); }
-            foreach ($xpath->query('//h1') as $n) { $t = trim($n->textContent); if ($t) $nameCandidates[] = $t; }
-            foreach ($xpath->query('//h2') as $n) { $t = trim($n->textContent); if ($t) $nameCandidates[] = $t; }
-            foreach ($nameCandidates as $c) {
-                if (preg_match('/^(bound|roster|varsity|jv|home|schedule|stats)$/i', trim($c))) continue;
-                $teamName = $c; break;
+            $skipWords = '/^(bound|gobound|home|roster|varsity|jv|junior varsity|schedule|stats|iowa|ighsau|soccer|football|basketball|\d{4}(-\d+)?)$/i';
+
+            // Breadcrumb: look for nav links, school name is typically second-to-last meaningful link
+            foreach (['//nav//a', '//*[contains(@class,"breadcrumb")]//a', '//*[contains(@class,"Breadcrumb")]//a'] as $bq) {
+                $links = $xpath->query($bq);
+                if ($links->length < 2) continue;
+                for ($li = $links->length - 1; $li >= 0; $li--) {
+                    $t = trim($links->item($li)->textContent);
+                    if (!$t || preg_match($skipWords, $t)) continue;
+                    $teamName = $t; break 2;
+                }
             }
-            // Strip site suffix (| Bound, - Bound, etc.)
-            $teamName = preg_replace('/\s*[\|\-–—]\s*(Bound|GoFan|NFHS|MaxPreps).*$/i', '', $teamName);
-            // Strip year range
+
+            // og:title / page title: split by pipe and take first meaningful segment
+            if (!$teamName) {
+                $titleSources = [];
+                foreach ($xpath->query('//meta[@property="og:title"]/@content') as $n) { $titleSources[] = trim($n->nodeValue); }
+                foreach ($xpath->query('//title') as $n) { $titleSources[] = trim($n->textContent); }
+                foreach ($titleSources as $raw) {
+                    $parts = array_filter(array_map('trim', preg_split('/\s*[\|\-–—]\s*/', $raw)));
+                    foreach ($parts as $part) {
+                        if (preg_match($skipWords, $part) || strlen($part) < 3) continue;
+                        $teamName = $part; break 2;
+                    }
+                }
+            }
+
+            // h1/h2 fallback
+            if (!$teamName) {
+                foreach ($xpath->query('//h1 | //h2') as $n) {
+                    $t = trim($n->textContent);
+                    if ($t && !preg_match($skipWords, $t)) { $teamName = $t; break; }
+                }
+            }
+
+            // Clean: strip year, page-type words, sport names, gender words
             $teamName = preg_replace('/\s*\d{4}-\d{2,4}\s*/', ' ', $teamName);
-            // Strip page-type words
             $teamName = preg_replace('/\s*\b(Roster|Schedule|Stats|Varsity|JV|Junior Varsity)\b\s*/i', ' ', $teamName);
-            // Strip gender+sport combos and standalone sport/gender (we re-add gender below)
             $sports = 'Soccer|Football|Basketball|Baseball|Softball|Volleyball|Wrestling|Track|Tennis|Golf|Swimming|Lacrosse';
             $teamName = preg_replace('/\s*\b(Girls|Boys|Women\'s|Men\'s|Women|Men)\b\s*\b(' . $sports . ')\b\s*/i', ' ', $teamName);
             $teamName = preg_replace('/\s*\b(' . $sports . ')\b\s*/i', ' ', $teamName);
             $teamName = preg_replace('/\s*\b(Girls|Boys|Women\'s|Men\'s|Women|Men)\b\s*/i', ' ', $teamName);
+            // Strip trailing mascot: if last word is likely a mascot (plural noun after a location name), remove it
+            // Most Iowa school names are ≤ 3 words; a 4th+ word is almost always the mascot
+            $words = preg_split('/\s+/', trim($teamName));
+            if (count($words) >= 4) {
+                // Remove last word (mascot) as long as the preceding words look like a school name
+                array_pop($words);
+                $teamName = implode(' ', $words);
+            }
             $teamName = trim(preg_replace('/\s+/', ' ', $teamName));
             if ($sportGender && stripos($teamName, 'Girls') === false && stripos($teamName, 'Boys') === false) {
                 $teamName .= ' ' . $sportGender;
@@ -226,11 +256,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $classMap  = ['9'=>'FR','10'=>'SO','11'=>'JR','12'=>'SR','freshman'=>'FR','sophomore'=>'SO','junior'=>'JR','senior'=>'SR'];
                         $classNorm = strtoupper($classRaw);
                         $classFinal = $classMap[$classRaw] ?? (in_array($classNorm, ['FR','SO','JR','SR']) ? $classNorm : '');
-                        $numStr = (string)($p['number'] ?? $p['jersey'] ?? $p['jersey_number'] ?? '');
+                        $numRaw2 = (string)($p['number'] ?? $p['jersey'] ?? $p['jersey_number'] ?? '');
+                        preg_match('/\d+/', $numRaw2, $numM2);
                         $players[] = [
                             'first_name'      => cleanPlayerName($first),
                             'last_name'       => cleanPlayerName($last),
-                            'number'          => strlen(preg_replace('/[^0-9]/', '', $numStr)) ? intval(preg_replace('/[^0-9]/', '', $numStr)) : 0,
+                            'number'          => $numM2[0] ?? '0',
                             'position'        => $p['position'] ?? $p['pos'] ?? '',
                             'class'           => $classFinal,
                             'default_starter' => 0
@@ -281,11 +312,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $classMap  = ['9'=>'FR','10'=>'SO','11'=>'JR','12'=>'SR','freshman'=>'FR','sophomore'=>'SO','junior'=>'JR','senior'=>'SR'];
                         $classNorm = strtoupper(trim($classRaw));
                         $classFinal = $classMap[strtolower($classRaw)] ?? (in_array($classNorm, ['FR','SO','JR','SR']) ? $classNorm : '');
-                        $numDigits = preg_replace('/[^0-9]/', '', $numRaw);
+                        preg_match('/\d+/', $numRaw, $numM);
                         $players[] = [
                             'first_name'      => cleanPlayerName($first),
                             'last_name'       => cleanPlayerName($last),
-                            'number'          => strlen($numDigits) ? intval($numDigits) : 0,
+                            'number'          => $numM[0] ?? '0',
                             'position'        => trim($posRaw),
                             'class'           => $classFinal,
                             'default_starter' => 0
@@ -956,14 +987,21 @@ function renderImportPreview() {
   el.innerHTML = '';
   importedPlayers.forEach((p, i) => {
     const row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:5px 10px;border-bottom:1px solid #2a2a2a;';
+    row.style.cssText = 'display:flex;align-items:center;gap:5px;padding:3px 8px;border-bottom:1px solid #2a2a2a;';
     row.innerHTML = `
       <input type="checkbox" id="imp_${i}" ${p.default_starter ? 'checked' : ''}
              style="width:18px;height:18px;flex-shrink:0;accent-color:#2ecc71;" onchange="updateImportStarter(${i},this.checked)">
-      <span style="background:rgba(255,255,255,0.12);border-radius:4px;padding:1px 6px;font-size:12px;min-width:28px;text-align:center;flex-shrink:0;">${p.number ?? '—'}</span>
-      <span style="flex:1;font-size:14px;">${escHtml(p.first_name)} ${escHtml(p.last_name)}</span>
-      <span style="font-size:11px;color:#aaa;flex-shrink:0;">${escHtml(p.position)}${p.position && p.class ? ' · ' : ''}${escHtml(p.class)}</span>
-      <label for="imp_${i}" style="font-size:11px;color:#2ecc71;width:10px;text-align:center;flex-shrink:0;">${p.default_starter ? '★' : ''}</label>`;
+      <input type="text" value="${escHtml(p.number ?? '')}" placeholder="#"
+             style="width:38px;flex-shrink:0;text-align:center;font-size:12px;padding:2px 4px;height:26px;background:#1a1a1a;border:1px solid #444;border-radius:4px;color:#e0e0e0;"
+             oninput="importedPlayers[${i}].number=this.value">
+      <input type="text" value="${escHtml(p.first_name)}" placeholder="First"
+             style="flex:1;min-width:60px;font-size:13px;padding:2px 6px;height:26px;background:#1a1a1a;border:1px solid #444;border-radius:4px;color:#e0e0e0;"
+             oninput="importedPlayers[${i}].first_name=this.value">
+      <input type="text" value="${escHtml(p.last_name)}" placeholder="Last"
+             style="flex:1;min-width:60px;font-size:13px;padding:2px 6px;height:26px;background:#1a1a1a;border:1px solid #444;border-radius:4px;color:#e0e0e0;"
+             oninput="importedPlayers[${i}].last_name=this.value">
+      <span style="font-size:11px;color:#aaa;flex-shrink:0;min-width:40px;">${escHtml(p.class)}</span>
+      <label for="imp_${i}" style="font-size:13px;color:#2ecc71;width:14px;text-align:center;flex-shrink:0;cursor:pointer;">${p.default_starter ? '★' : '☆'}</label>`;
     el.appendChild(row);
   });
   updateImportStarterCount();
@@ -971,9 +1009,8 @@ function renderImportPreview() {
 
 function updateImportStarter(i, checked) {
   importedPlayers[i].default_starter = checked ? 1 : 0;
-  // Update star label
   const label = document.querySelector(`label[for="imp_${i}"]`);
-  if (label) label.textContent = checked ? '★' : '';
+  if (label) label.textContent = checked ? '★' : '☆';
   updateImportStarterCount();
 }
 
@@ -1013,6 +1050,17 @@ async function saveImportedRoster() {
   }
   if (!teamName) { showNotification('Team name is required.', 'warning'); return; }
   if (addTeam && !password) { showNotification('Password is required to add the team.', 'warning'); return; }
+
+  // Validate all names populated
+  const emptyNames = importedPlayers.filter(p => !p.first_name.trim() || !p.last_name.trim());
+  if (emptyNames.length) {
+    showNotification(`${emptyNames.length} player(s) have empty names — please fill them in.`, 'warning'); return;
+  }
+  // Validate exactly 11 starters
+  const starterCount = importedPlayers.filter(p => p.default_starter).length;
+  if (starterCount !== 11) {
+    showNotification(`Select exactly 11 default starters (${starterCount} currently selected).`, 'warning'); return;
+  }
 
   // Save roster file
   const r = await api({ action: 'save_roster', file, roster: importedPlayers });
