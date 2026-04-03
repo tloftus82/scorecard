@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // ──────────────────────────────────────────────────────────
 
   let selectedTeamName = '';
+  let currentRosterPath = '';
   let currentRoster = [];
   let events = [];
   let saved = false;
@@ -123,6 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
       .then(res => res.json())
       .then(data => {
         currentRoster = data;
+        currentRosterPath = file;
         renderPlayers();
         teamSelect.disabled = true;
         loadGameButton.disabled = false;
@@ -433,6 +435,7 @@ document.addEventListener('DOMContentLoaded', function() {
     renderOtherEventButtons();
     renderEvents();
     saveGame();
+    saveSessionState();
   });
 
   loadGameButton.addEventListener('click', async function () {
@@ -490,6 +493,7 @@ document.addEventListener('DOMContentLoaded', function() {
         renderPlayers();
         renderEventButtons();
         renderOtherEventButtons();
+        saveSessionState();
       });
   }
 
@@ -512,6 +516,79 @@ document.addEventListener('DOMContentLoaded', function() {
   let currentHalf = 1;
   let clockStartedAt = null;
   let clockSecondsAtStart = 40 * 60;
+
+  // ── Session persistence ─────────────────────────────────────
+  function saveSessionState() {
+    sessionStorage.setItem('scorecard_session', JSON.stringify({
+      filename,
+      selectedTeamName,
+      currentRosterPath,
+      currentHalf,
+      clockStartedAt,
+      clockSecondsAtStart,
+      clockSeconds,
+      isRunning: clockInterval !== null
+    }));
+  }
+
+  function clearSessionState() {
+    sessionStorage.removeItem('scorecard_session');
+  }
+
+  async function restoreSessionState() {
+    let state;
+    try { state = JSON.parse(sessionStorage.getItem('scorecard_session')); } catch(e) { return; }
+    if (!state || !state.filename || !state.currentRosterPath) return;
+
+    // Re-fetch roster (no password prompt — session was already authenticated)
+    try {
+      const rosterRes = await fetch(`${state.currentRosterPath}?nocache=` + Date.now());
+      currentRoster = await rosterRes.json();
+      currentRosterPath = state.currentRosterPath;
+      selectedTeamName = state.selectedTeamName;
+      teamSelect.value = state.currentRosterPath;
+      teamSelect.disabled = true;
+    } catch(e) { clearSessionState(); return; }
+
+    // Re-fetch game from server
+    try {
+      const gameRes = await fetch(`games/${state.filename}.json?nocache=` + Date.now());
+      const data = await gameRes.json();
+      opponentInput.value = data.opponent;
+      opponentInput.readOnly = true;
+      filename = state.filename;
+      saved = true;
+      events = data.events || [];
+    } catch(e) { clearSessionState(); return; }
+
+    disableSaveButton();
+    loadGameButton.style.display = 'none';
+    showGameSection();
+    updateScorecardLink();
+    renderPlayers();
+    renderEventButtons();
+    renderOtherEventButtons();
+    renderEvents();
+    updateScoreboard();
+
+    // Restore half indicator
+    currentHalf = state.currentHalf || 1;
+    document.getElementById('halfIndicator').textContent = currentHalf === 1 ? '1st Half' : '2nd Half';
+
+    // Restore clock
+    if (state.isRunning && state.clockStartedAt) {
+      const elapsed = Math.floor((Date.now() - state.clockStartedAt) / 1000);
+      clockSeconds = Math.max(0, state.clockSecondsAtStart - elapsed);
+      updateClockDisplay();
+      if (clockSeconds > 0) {
+        startClock();
+      }
+    } else {
+      clockSeconds = state.clockSeconds ?? 40 * 60;
+      updateClockDisplay();
+    }
+  }
+  // ──────────────────────────────────────────────────────────
 
   function setButtonState(buttonId, enabled) {
     const button = document.getElementById(buttonId);
@@ -553,6 +630,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setButtonState('startFirstHalfButton', false);
     setButtonState('startSecondHalfButton', false);
     document.getElementById('startClockButton').classList.remove('flash');
+    saveSessionState();
   }
 
   function stopClock() {
@@ -564,6 +642,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setButtonState('startFirstHalfButton', true);
     setButtonState('startSecondHalfButton', true);
     document.getElementById('startClockButton').classList.add('flash');
+    saveSessionState();
   }
 
   // Set Clock modal
@@ -592,6 +671,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('halfIndicator').textContent = currentHalf === 1 ? '1st Half' : '2nd Half';
     updateClockDisplay();
     document.getElementById('setClockModal').style.display = 'none';
+    saveSessionState();
   });
 
   document.getElementById('clockModalCancel').addEventListener('click', function() {
@@ -630,6 +710,8 @@ document.addEventListener('DOMContentLoaded', function() {
   renderOtherEventButtons();
   renderPlayers();
   renderEventButtons();
+
+  restoreSessionState();
 
   function setOfflineOverlay(visible) {
     document.getElementById('offlineOverlay').style.display = visible ? 'flex' : 'none';
