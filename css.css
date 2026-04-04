@@ -395,6 +395,16 @@ h2 {
   justify-content: center;
 }
 
+/* ── Event button tap flash ── */
+@keyframes event-tap-flash {
+  0%   { background-color: #2ecc71; }
+  100% { background-color: inherit; }
+}
+
+.event-tap-flash {
+  animation: event-tap-flash 0.4s ease-out forwards;
+}
+
 /* ── Selected state ── */
 .selected {
   background-color: #2ecc71 !important;

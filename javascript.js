@@ -284,6 +284,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (selectedEventButton) selectedEventButton.classList.remove('selected');
         selectedEventButton = this;
         this.classList.add('selected');
+        this.classList.remove('event-tap-flash');
+        void this.offsetWidth; // force reflow to restart animation
+        this.classList.add('event-tap-flash');
 
         const player = selectedPlayerButton.getAttribute('data-player');
         const eventName = this.getAttribute('data-event');
@@ -350,6 +353,10 @@ document.addEventListener('DOMContentLoaded', async function() {
       button.addEventListener('click', async function () {
         if (!saved) return;
         const eventName = this.getAttribute('data-event');
+
+        this.classList.remove('event-tap-flash');
+        void this.offsetWidth;
+        this.classList.add('event-tap-flash');
 
         const clockWasRunning = clockInterval !== null;
 
