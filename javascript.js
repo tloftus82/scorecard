@@ -874,4 +874,9 @@ document.addEventListener('DOMContentLoaded', async function() {
   setInterval(checkConnectionStatus, 15000);
   window.addEventListener('online', checkConnectionStatus);
   window.addEventListener('offline', () => setOfflineOverlay(true));
+
+  // Re-render players on orientation change so button heights recalculate cleanly
+  screen.orientation
+    ? screen.orientation.addEventListener('change', () => setTimeout(renderPlayers, 100))
+    : window.addEventListener('orientationchange', () => setTimeout(renderPlayers, 100));
 });
