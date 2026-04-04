@@ -766,6 +766,22 @@ li button {
   text-shadow: 0 4px 20px rgba(0,0,0,0.6);
 }
 
+/* ── Falling soccer balls ── */
+.falling-ball {
+  position: fixed;
+  top: -80px;
+  font-size: 36px;
+  z-index: 100000;
+  pointer-events: none;
+  animation: ball-fall linear forwards;
+}
+
+@keyframes ball-fall {
+  0%   { transform: translateY(0) rotate(0deg);   opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
 /* ── Player button ripple ── */
 .player-button {
   overflow: hidden;

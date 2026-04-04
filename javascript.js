@@ -519,12 +519,32 @@ document.addEventListener('DOMContentLoaded', async function() {
     }, interval);
   }
 
+  function launchFallingBalls() {
+    const count = 22;
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const ball = document.createElement('span');
+        ball.className = 'falling-ball';
+        ball.textContent = '⚽';
+        const size = 24 + Math.random() * 28;
+        const duration = 1.2 + Math.random() * 1.4;
+        const left = Math.random() * 100;
+        ball.style.left = left + 'vw';
+        ball.style.fontSize = size + 'px';
+        ball.style.animationDuration = duration + 's';
+        document.body.appendChild(ball);
+        setTimeout(() => ball.remove(), duration * 1000);
+      }, i * 60);
+    }
+  }
+
   function showGoalCelebration() {
     const overlay = document.getElementById('goalOverlay');
     overlay.classList.remove('show');
     void overlay.offsetWidth;
     overlay.classList.add('show');
     setTimeout(() => overlay.classList.remove('show'), 1600);
+    launchFallingBalls();
   }
 
   function updateScoreboard() {
