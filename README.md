@@ -170,6 +170,13 @@ When reporting a bug, please include:
 - What you expected vs. what actually occurred
 - Device and browser (this is a mobile-first app — iOS Safari and Android Chrome are primary targets)
 
+## Support
+
+If this app has been useful to you, a tip is always appreciated but never expected!
+
+- ☕ [Buy Me a Coffee](https://buymeacoffee.com/tloftus)
+- 💸 Venmo: [@Thomas-Loftus-2](https://venmo.com/Thomas-Loftus-2)
+
 ## License
 
 MIT
