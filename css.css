@@ -712,35 +712,48 @@ li button {
 }
 
 
-/* ── Emoji flash overlay ── */
-.emoji-flash {
+/* ── CSS brick wall flash ── */
+.flash-overlay {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 100001;
   pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  animation: emoji-flash-anim 0.8s ease forwards;
+  animation: flash-overlay-anim 0.8s ease forwards;
 }
 
-.wall-row {
-  font-size: 44px;
-  line-height: 1.05;
-  letter-spacing: 1px;
-}
-
-.wall-row-offset {
-  margin-left: 22px;
-}
-
-@keyframes emoji-flash-anim {
+@keyframes flash-overlay-anim {
   0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
   20%  { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
   70%  { opacity: 1; transform: translate(-50%, -50%) scale(1);   }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+
+.css-wall {
+  padding: 5px;
+  background: #b5a48a;
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.brick-row {
+  display: flex;
+  gap: 5px;
+}
+
+.brick-row-offset {
+  margin-left: 30px;
+}
+
+.brick {
+  width: 54px;
+  height: 24px;
+  background: #a93226;
+  border-radius: 2px;
+  box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
 }
 
 /* ── Falling items (balls, cards) ── */

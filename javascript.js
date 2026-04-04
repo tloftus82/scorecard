@@ -342,7 +342,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         if (celebrationsEnabled && celebrationLookup[eventName]) {
           const ctype = celebrationLookup[eventName];
-          if (ctype === 'wall') flashEmoji('🧱');
+          if (ctype === 'wall') flashWall();
           else launchFallingItems(ctype);
         }
 
@@ -563,13 +563,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     launchFallingItems('ball');
   }
 
-  function flashEmoji(emoji) {
+  function flashWall() {
     const el = document.createElement('div');
-    el.className = 'emoji-flash';
+    el.className = 'flash-overlay css-wall';
     [0, 1, 2, 3].forEach(row => {
       const rowEl = document.createElement('div');
-      rowEl.className = 'wall-row' + (row % 2 === 1 ? ' wall-row-offset' : '');
-      rowEl.textContent = emoji.repeat(4);
+      rowEl.className = 'brick-row' + (row % 2 === 1 ? ' brick-row-offset' : '');
+      for (let i = 0; i < 4; i++) {
+        const brick = document.createElement('div');
+        brick.className = 'brick';
+        rowEl.appendChild(brick);
+      }
       el.appendChild(rowEl);
     });
     document.body.appendChild(el);
