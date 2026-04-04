@@ -92,6 +92,8 @@ document.addEventListener('DOMContentLoaded', async function() {
   let selectedEventButton = null;
   let usScore = 0;
   let themScore = 0;
+  let renderedUsScore = 0;
+  let renderedThemScore = 0;
 
   opponentInput.disabled = true;
   saveGameButton.disabled = true;
@@ -562,8 +564,10 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 
 function updateScoreboard() {
-    const prevUs   = parseInt(usScoreElement.textContent)   || 0;
-    const prevThem = parseInt(themScoreElement.textContent) || 0;
+    const prevUs   = renderedUsScore;
+    const prevThem = renderedThemScore;
+    renderedUsScore  = usScore;
+    renderedThemScore = themScore;
     const cls = usScore > themScore ? 'score-win' : usScore < themScore ? 'score-loss' : 'score-tie';
     usScoreElement.className = cls;
     themScoreElement.className = cls;
