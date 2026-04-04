@@ -97,37 +97,46 @@
 
       <div id="gameSection" style="display:none;">
 
-        <div class="section-header">
-          <h2>Players</h2>
-          <div class="sort-container">
-            <span class="sort-label">Sort:</span>
-            <select id="playerSortSelect">
-              <option value="number">No.</option>
-              <option value="first">First</option>
-              <option value="last">Last</option>
-            </select>
+        <div class="game-columns">
+
+          <div class="game-col-players">
+            <div class="section-header">
+              <h2>Players</h2>
+              <div class="sort-container">
+                <span class="sort-label">Sort:</span>
+                <select id="playerSortSelect">
+                  <option value="number">No.</option>
+                  <option value="first">First</option>
+                  <option value="last">Last</option>
+                </select>
+              </div>
+            </div>
+            <div id="playerButtons" class="player-grid"></div>
           </div>
+
+          <div class="game-col-events">
+            <h2>Events</h2>
+            <div id="eventButtons" class="event-grid"></div>
+
+            <h2>Other Events</h2>
+            <div id="otherEventButtons" class="event-grid"></div>
+          </div>
+
         </div>
 
-        <div id="playerButtons" class="player-grid"></div>
+        <div class="game-log-section">
+          <h2>Game Events</h2>
+          <div class="event-window">
+            <ul id="eventList"></ul>
+          </div>
 
-        <h2>Events</h2>
-        <div id="eventButtons" class="event-grid"></div>
-
-        <h2>Other Events</h2>
-        <div id="otherEventButtons" class="event-grid"></div>
-
-        <h2>Game Events</h2>
-        <div class="event-window">
-          <ul id="eventList"></ul>
-        </div>
-
-        <button id="scorecardButton" class="scorecard-bottom-btn">Scorecard</button>
-        <input id="scorecardLink" class="scorecard-link-box" type="text" readonly placeholder="Scorecard link will appear here">
-        <div class="scorecard-link-hint">Tap link to copy</div>
-        <div class="setup-buttons" style="margin-bottom:10px;">
-          <button id="closeGameButton" style="background:#555;">Close Game</button>
-          <button onclick="window.open('admin.php','_blank')" style="background:#2c3e50;">Admin</button>
+          <button id="scorecardButton" class="scorecard-bottom-btn">Scorecard</button>
+          <input id="scorecardLink" class="scorecard-link-box" type="text" readonly placeholder="Scorecard link will appear here">
+          <div class="scorecard-link-hint">Tap link to copy</div>
+          <div class="setup-buttons" style="margin-bottom:10px;">
+            <button id="closeGameButton" style="background:#555;">Close Game</button>
+            <button onclick="window.open('admin.php','_blank')" style="background:#2c3e50;">Admin</button>
+          </div>
         </div>
 
       </div>

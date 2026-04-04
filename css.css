@@ -698,3 +698,51 @@ li button:hover {
   text-align: center;
   margin-bottom: 10px;
 }
+
+/* ── Portrait / narrow: stack everything vertically (default) ── */
+.game-columns {
+  display: block;
+}
+
+.game-col-players,
+.game-col-events,
+.game-log-section {
+  width: 100%;
+}
+
+/* ── Landscape / wide: two-column layout ── */
+@media (min-width: 600px) and (orientation: landscape),
+       (min-width: 900px) {
+
+  .container {
+    max-width: 100%;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .game-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+
+  /* Players column: use 2-column player grid in landscape */
+  .game-col-players .player-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Events column: keep 3-column event grid */
+  .game-col-events .event-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Log spans full width below both columns */
+  .game-log-section {
+    grid-column: 1 / -1;
+  }
+
+  .event-window {
+    max-height: 160px;
+  }
+}
