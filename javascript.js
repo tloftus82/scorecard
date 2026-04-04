@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (setupAdmin) setupAdmin.style.display = 'none';
   }
 
-  function saveGame() {
+  function saveGame(silent = false) {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', 'index.php', true);
     xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
@@ -179,8 +179,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     }));
     xhr.onload = function() {
       if (xhr.status === 200) {
-        const delay = Math.max(0, notificationEndsAt - Date.now());
-        setTimeout(() => showNotification('Saved ✓', 'success'), delay);
+        if (!silent) {
+          const delay = Math.max(0, notificationEndsAt - Date.now());
+          setTimeout(() => showNotification('Saved ✓', 'success'), delay);
+        }
       } else {
         showAlert('Error saving game.');
       }
@@ -304,7 +306,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         showNotification(`<small><i>${player}</i></small><br><b>${eventName}</b>${assistLine}${warning}`, clockWasRunning ? 'success' : 'warning');
         renderEvents();
         renderPlayers();
-        if (saved) saveGame();
+        if (saved) saveGame(true);
 
         selectedPlayerButton.classList.remove('selected');
         selectedEventButton.classList.remove('selected');
@@ -347,7 +349,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         showNotification(`<b>${eventName}</b>${warning}`, clockWasRunning ? 'success' : 'warning');
         renderEvents();
         updateScoreboard();
-        if (saved) saveGame();
+        if (saved) saveGame(true);
       });
 
       otherEventButtonsContainer.appendChild(button);
