@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (setupAdmin) setupAdmin.style.display = 'none';
   }
 
-  function saveGame(silent = false) {
+  function saveGame() {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', 'index.php', true);
     xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
@@ -179,22 +179,28 @@ document.addEventListener('DOMContentLoaded', async function() {
     }));
     xhr.onload = function() {
       if (xhr.status === 200) {
-        if (!silent) showNotification('Saved ✓', 'success');
+        const delay = Math.max(0, notificationEndsAt - Date.now());
+        setTimeout(() => showNotification('Saved ✓', 'success'), delay);
       } else {
         showAlert('Error saving game.');
       }
     };
   }
 
+  let notificationEndsAt = 0;
+
   function showNotification(message, type = 'success') {
+    const duration = type === 'warning' ? 2500 : 1000;
+    notificationEndsAt = Date.now() + duration;
     notification.innerHTML = message;
     notification.className = `notification ${type} show`;
-    setTimeout(() => notification.classList.remove('show'), type === 'warning' ? 2500 : 1000);
+    setTimeout(() => notification.classList.remove('show'), duration);
   }
 
   function renderPlayers() {
     playerButtonsContainer.innerHTML = '';
     const sortValue = sortSelect.value;
+    const cols = 3;
 
     let sorted;
     if (sortValue === 'first') {
@@ -205,7 +211,17 @@ document.addEventListener('DOMContentLoaded', async function() {
       sorted = currentRoster.slice().sort((a, b) => (parseInt(a.number) || 0) - (parseInt(b.number) || 0));
     }
 
-    sorted.forEach(player => {
+    // Flow column-first: reorder array so items read top-to-bottom per column
+    const rows = Math.ceil(sorted.length / cols);
+    const colFirst = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const i = c * rows + r;
+        if (i < sorted.length) colFirst.push(sorted[i]);
+      }
+    }
+
+    colFirst.forEach(player => {
       const button = document.createElement('button');
       button.className = 'player-button';
       button.setAttribute('data-player', `${player.first_name} ${player.last_name}`);
@@ -286,7 +302,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         showNotification(`<small><i>${player}</i></small><br><b>${eventName}</b>${warning}`, clockWasRunning ? 'success' : 'warning');
         renderEvents();
         renderPlayers();
-        if (saved) saveGame(true);
+        if (saved) saveGame();
 
         selectedPlayerButton.classList.remove('selected');
         selectedEventButton.classList.remove('selected');
@@ -329,7 +345,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         showNotification(`<b>${eventName}</b>${warning}`, clockWasRunning ? 'success' : 'warning');
         renderEvents();
         updateScoreboard();
-        if (saved) saveGame(true);
+        if (saved) saveGame();
       });
 
       otherEventButtonsContainer.appendChild(button);
@@ -452,7 +468,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     events.splice(index, 1);
     renderEvents();
     renderPlayers();
-    if (saved) saveGame(true);
+    if (saved) saveGame();
   };
 
   saveGameButton.addEventListener('click', async function() {
