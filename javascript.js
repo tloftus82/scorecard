@@ -520,7 +520,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 
   function launchFallingBalls() {
-    const count = 22;
+    const count = 44;
     for (let i = 0; i < count; i++) {
       setTimeout(() => {
         const ball = document.createElement('span');
@@ -539,11 +539,6 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 
   function showGoalCelebration() {
-    const overlay = document.getElementById('goalOverlay');
-    overlay.classList.remove('show');
-    void overlay.offsetWidth;
-    overlay.classList.add('show');
-    setTimeout(() => overlay.classList.remove('show'), 1600);
     launchFallingBalls();
   }
 
