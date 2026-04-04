@@ -341,9 +341,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         showNotification(`<small><i>${player}</i></small><br><b>${eventName}</b>${assistLine}${warning}`, clockWasRunning ? 'success' : 'warning');
 
         if (celebrationsEnabled && celebrationLookup[eventName]) {
-          const ctype = celebrationLookup[eventName];
-          if (ctype === 'wall') flashWall();
-          else launchFallingItems(ctype);
+          launchFallingItems(celebrationLookup[eventName]);
         }
 
         // Deselect before re-rendering — renderPlayers() destroys the old button nodes
@@ -548,7 +546,7 @@ document.addEventListener('DOMContentLoaded', async function() {
           el.style.transform = `scale(${scale})`;
         } else {
           el.className = 'falling-item ball';
-          el.textContent = '⚽';
+          el.textContent = type === 'wall' ? '🧱' : '⚽';
           const size = 24 + Math.random() * 28;
           el.style.fontSize = size + 'px';
         }
@@ -563,24 +561,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     launchFallingItems('ball');
   }
 
-  function flashWall() {
-    const el = document.createElement('div');
-    el.className = 'flash-overlay css-wall';
-    [0, 1, 2, 3].forEach(row => {
-      const rowEl = document.createElement('div');
-      rowEl.className = 'brick-row' + (row % 2 === 1 ? ' brick-row-offset' : '');
-      for (let i = 0; i < 4; i++) {
-        const brick = document.createElement('div');
-        brick.className = 'brick';
-        rowEl.appendChild(brick);
-      }
-      el.appendChild(rowEl);
-    });
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 800);
-  }
-
-  function updateScoreboard() {
+function updateScoreboard() {
     const prevUs   = parseInt(usScoreElement.textContent)   || 0;
     const prevThem = parseInt(themScoreElement.textContent) || 0;
     const cls = usScore > themScore ? 'score-win' : usScore < themScore ? 'score-loss' : 'score-tie';
