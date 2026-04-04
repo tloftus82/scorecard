@@ -732,9 +732,18 @@ li button:hover {
        (min-width: 900px) {
 
   .container {
-    max-width: 100%;
+    max-width: 1080px;
     padding-left: 12px;
     padding-right: 12px;
+  }
+
+  /* Cap scoreboard inner content to the same width and center it */
+  #matchupBar,
+  .scoreboard-row {
+    max-width: 1080px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .game-columns {
