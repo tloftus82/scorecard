@@ -398,7 +398,7 @@ h2 {
 /* ── Event button tap flash ── */
 @keyframes event-tap-flash {
   0%   { background-color: #2ecc71; }
-  100% { background-color: inherit; }
+  100% { background-color: #3498db; }
 }
 
 .event-tap-flash {
