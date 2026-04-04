@@ -46,6 +46,13 @@
       <div class="offline-message">No Internet Connection</div>
     </div>
 
+    <div id="goalOverlay">
+      <div id="goalOverlayInner">
+        <div id="goalOverlayBall">⚽</div>
+        <div id="goalOverlayText">GOAL!</div>
+      </div>
+    </div>
+
     <div id="scoreboard">
       <div id="matchupBar" style="display:none;"></div>
       <div class="scoreboard-row">

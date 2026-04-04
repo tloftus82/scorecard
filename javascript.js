@@ -505,16 +505,47 @@ document.addEventListener('DOMContentLoaded', async function() {
     el.addEventListener('animationend', () => el.classList.remove('score-pop'), { once: true });
   }
 
+  function animateCount(el, from, to, cls) {
+    if (from === to) return;
+    const step = to > from ? 1 : -1;
+    const duration = 300;
+    const steps = Math.abs(to - from);
+    const interval = Math.max(40, Math.floor(duration / steps));
+    let current = from;
+    const timer = setInterval(() => {
+      current += step;
+      el.textContent = current;
+      if (current === to) clearInterval(timer);
+    }, interval);
+  }
+
+  function showGoalCelebration() {
+    const overlay = document.getElementById('goalOverlay');
+    overlay.classList.remove('show');
+    void overlay.offsetWidth;
+    overlay.classList.add('show');
+    setTimeout(() => overlay.classList.remove('show'), 1600);
+  }
+
   function updateScoreboard() {
-    const prevUs = parseInt(usScoreElement.textContent) || 0;
+    const prevUs   = parseInt(usScoreElement.textContent)   || 0;
     const prevThem = parseInt(themScoreElement.textContent) || 0;
-    usScoreElement.textContent = usScore;
-    themScoreElement.textContent = themScore;
     const cls = usScore > themScore ? 'score-win' : usScore < themScore ? 'score-loss' : 'score-tie';
     usScoreElement.className = cls;
     themScoreElement.className = cls;
-    if (usScore !== prevUs) popScoreElement(usScoreElement);
-    if (themScore !== prevThem) popScoreElement(themScoreElement);
+    if (usScore !== prevUs) {
+      animateCount(usScoreElement, prevUs, usScore, cls);
+      popScoreElement(usScoreElement);
+      if (usScore > prevUs) showGoalCelebration();
+    } else {
+      usScoreElement.textContent = usScore;
+    }
+    if (themScore !== prevThem) {
+      animateCount(themScoreElement, prevThem, themScore, cls);
+      popScoreElement(themScoreElement);
+    } else {
+      themScoreElement.textContent = themScore;
+    }
   }
 
   window.deleteEvent = async function(index) {

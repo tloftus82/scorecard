@@ -711,6 +711,61 @@ li button {
   animation: event-slide-in 0.25s ease-out forwards;
 }
 
+/* ── Goal celebration overlay ── */
+#goalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0);
+  pointer-events: none;
+}
+
+#goalOverlay.show {
+  display: flex;
+  animation: goal-overlay-fade 1.6s ease-out forwards;
+}
+
+@keyframes goal-overlay-fade {
+  0%   { background: rgba(0,0,0,0); }
+  15%  { background: rgba(39,174,96,0.55); }
+  70%  { background: rgba(39,174,96,0.55); }
+  100% { background: rgba(0,0,0,0); }
+}
+
+#goalOverlayInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  animation: goal-inner-pop 1.6s ease-out forwards;
+}
+
+@keyframes goal-inner-pop {
+  0%   { opacity: 0; transform: scale(0.4); }
+  20%  { opacity: 1; transform: scale(1.15); }
+  35%  { transform: scale(0.95); }
+  50%  { transform: scale(1); }
+  75%  { opacity: 1; }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+#goalOverlayBall {
+  font-size: 72px;
+  line-height: 1;
+  filter: drop-shadow(0 4px 16px rgba(0,0,0,0.5));
+}
+
+#goalOverlayText {
+  font-size: 52px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 6px;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.6);
+}
+
 /* ── Player button ripple ── */
 .player-button {
   overflow: hidden;
