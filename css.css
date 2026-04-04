@@ -737,6 +737,15 @@ li button:hover {
     grid-template-columns: repeat(3, 1fr);
   }
 
+  /* Match the height of the players section-header (h2 + sort dropdown = ~34px content)
+     so the first event button lines up with the first player button */
+  .game-col-events > h2:first-child {
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    margin: 5px 0 3px;
+  }
+
   /* Log spans full width below both columns */
   .game-log-section {
     grid-column: 1 / -1;
