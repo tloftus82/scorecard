@@ -1177,52 +1177,48 @@ function updateScoreboard() {
 
   const voiceBtn    = document.getElementById('voiceBtn');
   const voiceStatus = document.getElementById('voiceStatus');
-  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  if (!SpeechRecognitionAPI) {
-    if (voiceBtn) voiceBtn.style.display = 'none';
-  } else {
-    let recognition   = null;
+  {
+    let mediaRecorder  = null;
     let voiceListening = false;
-    let voiceResult   = null;
 
     function startVoice() {
       if (!saved) { showAlert('Start a game first.'); return; }
       if (voiceListening) return;
-      voiceListening = true;
-      voiceResult    = null;
-      voiceBtn.classList.add('recording');
-      voiceStatus.textContent = 'Listening…';
 
-      recognition = new SpeechRecognitionAPI();
-      recognition.continuous     = false;
-      recognition.interimResults = false;
-      recognition.lang           = 'en-US';
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          voiceListening = true;
+          voiceBtn.classList.add('recording');
+          voiceStatus.textContent = 'Recording…';
 
-      recognition.onresult = e => {
-        voiceResult = e.results[0][0].transcript;
-        voiceStatus.textContent = `"${voiceResult}"`;
-      };
+          const chunks  = [];
+          const mimeType = ['audio/webm', 'audio/mp4', 'audio/ogg']
+            .find(t => MediaRecorder.isTypeSupported(t)) || '';
 
-      recognition.onerror = e => {
-        voiceListening = false;
-        voiceBtn.classList.remove('recording');
-        voiceStatus.textContent = e.error === 'no-speech' ? 'Nothing heard — try again' : `Mic error: ${e.error}`;
-        setTimeout(() => { voiceStatus.textContent = ''; }, 3000);
-      };
+          mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
+          mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+          mediaRecorder.onstop = async () => {
+            stream.getTracks().forEach(t => t.stop());
+            voiceBtn.classList.remove('recording');
+            voiceStatus.textContent = 'Transcribing…';
+            const blob = new Blob(chunks, { type: mimeType || 'audio/webm' });
+            await processAudioBlob(blob);
+          };
 
-      recognition.onend = () => {
-        voiceListening = false;
-        voiceBtn.classList.remove('recording');
-        if (voiceResult) processVoiceResult(voiceResult);
-        else setTimeout(() => { voiceStatus.textContent = ''; }, 1500);
-      };
-
-      recognition.start();
+          mediaRecorder.start();
+        })
+        .catch(err => {
+          voiceStatus.textContent = 'Mic error: ' + err.message;
+          setTimeout(() => { voiceStatus.textContent = ''; }, 3000);
+        });
     }
 
     function stopVoice() {
-      if (recognition && voiceListening) recognition.stop();
+      if (mediaRecorder && voiceListening) {
+        voiceListening = false;
+        mediaRecorder.stop();
+      }
     }
 
     voiceBtn.addEventListener('mousedown',  e => { e.preventDefault(); startVoice(); });
@@ -1230,6 +1226,28 @@ function updateScoreboard() {
     voiceBtn.addEventListener('mouseup',    stopVoice);
     voiceBtn.addEventListener('mouseleave', stopVoice);
     voiceBtn.addEventListener('touchend',   e => { e.preventDefault(); stopVoice(); }, { passive: false });
+
+    async function processAudioBlob(blob) {
+      try {
+        const ext = blob.type.includes('mp4') ? 'mp4' : blob.type.includes('ogg') ? 'ogg' : 'webm';
+        const formData = new FormData();
+        formData.append('audio', blob, `audio.${ext}`);
+
+        const res  = await fetch('voice.php', { method: 'POST', body: formData });
+        const data = await res.json();
+
+        if (!data.text || !data.text.trim()) {
+          voiceStatus.textContent = 'Nothing heard — try again';
+          setTimeout(() => { voiceStatus.textContent = ''; }, 3000);
+          return;
+        }
+
+        await processVoiceResult(data.text.trim());
+      } catch (err) {
+        voiceStatus.textContent = 'Error: ' + err.message;
+        setTimeout(() => { voiceStatus.textContent = ''; }, 3000);
+      }
+    }
 
     async function processVoiceResult(transcript) {
       const parsed = parseVoiceTranscript(transcript);
