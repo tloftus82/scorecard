@@ -254,8 +254,20 @@ document.addEventListener('DOMContentLoaded', async function() {
       button.disabled = !saved;
       const hasPlayed = events.some(e => e.player === `${player.first_name} ${player.last_name}`);
       button.style.backgroundColor = hasPlayed ? '#3498db' : '#2c3e50';
-      button.addEventListener('click', function () {
+      button.addEventListener('click', function (e) {
         if (!saved) return;
+
+        // Ripple effect
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple';
+        const rect = this.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+        ripple.style.top  = (e.clientY - rect.top  - size / 2) + 'px';
+        this.appendChild(ripple);
+        ripple.addEventListener('animationend', () => ripple.remove());
+
         if (selectedPlayerButton) selectedPlayerButton.classList.remove('selected');
         if (selectedPlayerButton === this) { selectedPlayerButton = null; return; }
         selectedPlayerButton = this;
@@ -468,6 +480,8 @@ document.addEventListener('DOMContentLoaded', async function() {
       li.appendChild(span);
       li.appendChild(btn);
       eventListElement.appendChild(li);
+      // Animate only the newest event (index 0 = most recent, list is reversed)
+      if (index === 0) li.classList.add('event-slide-in');
 
       const scoring = scoreLookup[event.event] || { us: 0, them: 0 };
       usScore += scoring.us;
@@ -484,12 +498,23 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   }
 
+  function popScoreElement(el) {
+    el.classList.remove('score-pop');
+    void el.offsetWidth;
+    el.classList.add('score-pop');
+    el.addEventListener('animationend', () => el.classList.remove('score-pop'), { once: true });
+  }
+
   function updateScoreboard() {
+    const prevUs = parseInt(usScoreElement.textContent) || 0;
+    const prevThem = parseInt(themScoreElement.textContent) || 0;
     usScoreElement.textContent = usScore;
     themScoreElement.textContent = themScore;
     const cls = usScore > themScore ? 'score-win' : usScore < themScore ? 'score-loss' : 'score-tie';
     usScoreElement.className = cls;
     themScoreElement.className = cls;
+    if (usScore !== prevUs) popScoreElement(usScoreElement);
+    if (themScore !== prevThem) popScoreElement(themScoreElement);
   }
 
   window.deleteEvent = async function(index) {
