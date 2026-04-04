@@ -48,6 +48,7 @@
 
     <div id="scoreboard">
       <div id="matchupBar" style="display:none;"></div>
+      <div class="scoreboard-row">
       <div class="score-clock-container">
         <div class="score-wrap">
           <div id="usScore" class="score-tie">0</div>
@@ -73,6 +74,7 @@
           <button id="setClockButton">Set</button>
         </div>
       </div>
+      </div><!-- /scoreboard-row -->
     </div>
 
     <div class="container">
