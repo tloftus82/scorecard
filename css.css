@@ -718,10 +718,22 @@ li button {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 120px;
   z-index: 100001;
   pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   animation: emoji-flash-anim 0.8s ease forwards;
+}
+
+.wall-row {
+  font-size: 44px;
+  line-height: 1.05;
+  letter-spacing: 1px;
+}
+
+.wall-row-offset {
+  margin-left: 22px;
 }
 
 @keyframes emoji-flash-anim {

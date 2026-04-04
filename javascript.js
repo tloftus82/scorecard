@@ -566,7 +566,12 @@ document.addEventListener('DOMContentLoaded', async function() {
   function flashEmoji(emoji) {
     const el = document.createElement('div');
     el.className = 'emoji-flash';
-    el.textContent = emoji;
+    [0, 1, 2, 3].forEach(row => {
+      const rowEl = document.createElement('div');
+      rowEl.className = 'wall-row' + (row % 2 === 1 ? ' wall-row-offset' : '');
+      rowEl.textContent = emoji.repeat(4);
+      el.appendChild(rowEl);
+    });
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 800);
   }
