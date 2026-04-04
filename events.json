@@ -1,7 +1,7 @@
 [
     { "name": "Shot",                   "us": 0, "them": 0, "stop_clock": false },
     { "name": "Shot On Goal",           "us": 0, "them": 0, "stop_clock": false },
-    { "name": "Goal",                   "us": 1, "them": 0, "stop_clock": true  },
+    { "name": "Goal",                   "us": 1, "them": 0, "stop_clock": true, "prompt_assist": true  },
     { "name": "Assist",                 "us": 0, "them": 0, "stop_clock": false },
     { "name": "Corner Kick",            "us": 0, "them": 0, "stop_clock": false },
     { "name": "Save",                   "us": 0, "them": 0, "stop_clock": false },

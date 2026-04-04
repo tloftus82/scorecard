@@ -266,6 +266,22 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         if (stopClockLookup.has(eventName)) await promptToStopClock();
 
+        if (promptAssistLookup.has(eventName)) {
+          const assistPlayer = await showAssistModal(player);
+          if (assistPlayer) {
+            events.push({
+              player: assistPlayer,
+              event: 'Assist',
+              time: new Date().toISOString(),
+              half: currentHalf,
+              timeRemaining: {
+                minutes: Math.floor(clockSeconds / 60),
+                seconds: clockSeconds % 60
+              }
+            });
+          }
+        }
+
         const warning = clockWasRunning ? '' : '<br><small>⚠️ Clock was not running</small>';
         showNotification(`<small><i>${player}</i></small><br><b>${eventName}</b>${warning}`, clockWasRunning ? 'success' : 'warning');
         renderEvents();
@@ -338,6 +354,49 @@ document.addEventListener('DOMContentLoaded', async function() {
   const stopClockLookup = new Set(
     [...eventsList, ...otherEvents].filter(e => e.stop_clock).map(e => e.name)
   );
+
+  // Build prompt-assist lookup from flags
+  const promptAssistLookup = new Set(
+    [...eventsList, ...otherEvents].filter(e => e.prompt_assist).map(e => e.name)
+  );
+
+  function showAssistModal(scorerName) {
+    return new Promise(resolve => {
+      const modal   = document.getElementById('assistModal');
+      const grid    = document.getElementById('assistPlayerGrid');
+      const header  = document.getElementById('assistModalHeader');
+
+      header.textContent = `Assist on ${scorerName.split(' ')[0]}'s goal?`;
+      grid.innerHTML = '';
+
+      currentRoster.slice()
+        .sort((a, b) => (parseInt(a.number) || 0) - (parseInt(b.number) || 0))
+        .forEach(player => {
+          const fullName = `${player.first_name} ${player.last_name}`;
+          if (fullName === scorerName) return; // skip the goal scorer
+          const btn = document.createElement('button');
+          btn.className = 'player-button';
+          btn.innerHTML = `
+            <span class="player-number">${player.number}</span>
+            <span class="player-name">
+              <span class="player-first">${player.first_name}</span>
+              <span class="player-last">${player.last_name}</span>
+            </span>`;
+          btn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            resolve(fullName);
+          });
+          grid.appendChild(btn);
+        });
+
+      document.getElementById('assistNoAssistButton').onclick = () => {
+        modal.style.display = 'none';
+        resolve(null);
+      };
+
+      modal.style.display = 'flex';
+    });
+  }
 
   function renderEvents() {
     eventListElement.innerHTML = '';

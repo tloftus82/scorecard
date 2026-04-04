@@ -144,6 +144,17 @@
       </div>
     </div>
 
+    <!-- Assist modal -->
+    <div id="assistModal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <h2 id="assistModalHeader">Who got the assist?</h2>
+        <div id="assistPlayerGrid" class="player-grid" style="margin-bottom:10px;max-height:55vh;overflow-y:auto;"></div>
+        <div class="modal-buttons">
+          <button id="assistNoAssistButton" class="btn-cancel">No Assist</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Generic alert/confirm/prompt modal -->
     <div id="appModal" class="modal" style="display:none;">
       <div class="modal-content">
