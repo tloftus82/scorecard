@@ -160,6 +160,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   function disableSaveButton() {
     saveGameButton.style.display = 'none';
+    const setupAdmin = document.getElementById('setupAdminButton');
+    if (setupAdmin) setupAdmin.style.display = 'none';
   }
 
   function saveGame() {
