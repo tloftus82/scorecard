@@ -775,6 +775,17 @@ li button:hover {
     margin-right: auto;
   }
 
+  /* Flatten clock buttons into one row */
+  .clock-buttons {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .clock-row-1,
+  .clock-row-2 {
+    gap: 4px;
+  }
+
   .game-columns {
     display: grid;
     grid-template-columns: 1fr 1fr;
