@@ -282,8 +282,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         if (stopClockLookup.has(eventName)) await promptToStopClock();
 
+        let assistPlayer = null;
         if (promptAssistLookup.has(eventName)) {
-          const assistPlayer = await showAssistModal(player);
+          assistPlayer = await showAssistModal(player);
           if (assistPlayer) {
             events.push({
               player: assistPlayer,
@@ -299,7 +300,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         const warning = clockWasRunning ? '' : '<br><small>⚠️ Clock was not running</small>';
-        showNotification(`<small><i>${player}</i></small><br><b>${eventName}</b>${warning}`, clockWasRunning ? 'success' : 'warning');
+        const assistLine = assistPlayer ? `<br><small><i>Assist: ${assistPlayer}</i></small>` : '';
+        showNotification(`<small><i>${player}</i></small><br><b>${eventName}</b>${assistLine}${warning}`, clockWasRunning ? 'success' : 'warning');
         renderEvents();
         renderPlayers();
         if (saved) saveGame();
