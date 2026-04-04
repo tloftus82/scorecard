@@ -795,7 +795,7 @@ li button:hover {
 
   /* Players column: use 2-column player grid in landscape */
   .game-col-players .player-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 
   /* Events column: keep 3-column event grid */
