@@ -36,13 +36,13 @@ A mobile-first, real-time soccer stats tracking web app designed for coaches and
 ├── javascript.js              # Main app logic
 ├── events.json                # Player event definitions
 ├── other_events.json          # Playerless event definitions (own goals, opp corner kicks)
-├── teams.example.json         # Template — copy to teams.json and configure
-├── teams.json                 # Team config with passwords (gitignored — create from example)
+├── teams.example.json         # Reference structure for teams.json
+├── teams.json                 # Team config with passwords (gitignored — managed via Admin panel)
 ├── .github/workflows/
 │   └── ftp-deploy.yml         # GitHub Actions deploy workflow
-├── rosters/                   # Roster JSON files (gitignored)
+├── rosters/                   # Roster JSON files (gitignored — managed via Admin panel)
 │   └── roster_<team>_<year>.json
-└── games/                     # Game data JSON files (gitignored — auto-created)
+└── games/                     # Game data JSON files (gitignored — auto-created on first save)
     └── <date>_<time>_<team>_<opponent>.json
 ```
 
@@ -59,90 +59,67 @@ A mobile-first, real-time soccer stats tracking web app designed for coaches and
 git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
 cd YOUR_REPO
 
-# Create your teams config from the example
-cp teams.example.json teams.json
-
 # Create required directories
 mkdir -p games rosters
+
+# Create a minimal teams.json to get started (see teams.example.json for structure)
+echo '[]' > teams.json
 
 # Serve with PHP's built-in server
 php -S localhost:8000
 ```
 
-Open `http://localhost:8000` in your browser.
+Open `http://localhost:8000` in your browser, then use the **Admin panel** to configure everything.
 
 ### Deployment
 
 The app uses GitHub Actions to deploy via FTP whenever you push to `main`.
 
-1. **Add your FTP password** to GitHub → Settings → Secrets → `FTP_PASSWORD`
-2. **Update `.github/workflows/ftp-deploy.yml`** with your server address, FTP username, and target directory
+1. **Add three secrets** to your GitHub repo (Settings → Secrets and variables → Actions):
+   - `FTP_SERVER` — your FTP hostname
+   - `FTP_USERNAME` — your FTP username
+   - `FTP_PASSWORD` — your FTP password
+2. **Update `server-dir`** in `.github/workflows/ftp-deploy.yml` to match your target path
 3. **Push to `main`** — the workflow deploys automatically
 
-> **Important:** `teams.json` and `rosters/` are gitignored. Upload them once manually to your server via FTP or your host's file manager. The `games/` directory is created automatically on first save.
-
-## Configuration
-
-### teams.json
-
-Copy `teams.example.json` to `teams.json` and add your teams. Each entry:
-
-```json
-{
-    "name": "Team Name",
-    "year": 2026,
-    "roster": "rosters/roster_teamcode_2026.json",
-    "password": "<md5_of_password>",
-    "is_active": 1
-}
-```
-
-Generate a password hash (MD5):
-```bash
-php -r "echo md5('yourpassword');"
-```
-
-Set `is_active` to `0` to hide a team in the app without deleting it.
+> **Note:** `teams.json`, `rosters/`, and `games/` are gitignored and never deployed by the workflow. After your first deploy, use the **Admin panel** to set up teams and import rosters directly through the browser.
 
 ### Admin Password
 
-The admin panel password is set in `admin.php` as `ADMIN_PASSWORD_HASH` (MD5 hash). Change this before deploying.
+Before deploying, update the `ADMIN_PASSWORD_HASH` in `admin.php` to your own MD5 hash:
 
-### events.json / other_events.json
-
-Define the event buttons shown in the app. Each event:
-
-```json
-{ "name": "Goal", "us": 1, "them": 0, "stop_clock": true }
+```bash
+php -r "echo md5('your-chosen-password');"
 ```
 
-| Field | Description |
+Replace the existing hash value on line 4 of `admin.php` with the output.
+
+## Configuration
+
+All configuration is managed through the **Admin panel** (`/admin.php`). No manual file editing required.
+
+### Admin Panel
+
+Access at `/admin.php` using your admin password:
+
+| Section | What you can do |
 |---|---|
-| `name` | Label shown on the button |
-| `us` | `1` if this event scores a point for your team |
-| `them` | `1` if this event scores a point for the opponent |
-| `stop_clock` | `true` if this event should prompt to stop the clock |
+| **Teams** | Add teams, set passwords, activate/deactivate, link roster files |
+| **Import Roster from Gobound** | Paste a Gobound.com roster URL to auto-import players with an editable preview |
+| **Roster** | View and edit individual player records |
+| **Events** | Customize player-linked event buttons and their scoring flags |
+| **Other Events** | Customize playerless events (opponent corner kicks, own goals, etc.) |
+| **Game Files** | View and delete saved game records |
 
-`events.json` = events tied to a specific player. `other_events.json` = playerless events.
+### Event Flags
 
-### Roster Files
+Each event in the Admin panel has three configurable flags:
 
-Roster files live in `rosters/` as JSON arrays:
-
-```json
-[
-    {
-        "first_name": "Jane",
-        "last_name": "Smith",
-        "number": "7",
-        "position": "MF",
-        "class": "JR",
-        "default_starter": 1
-    }
-]
-```
-
-Use the **Admin → Import Roster from Gobound** feature to auto-populate rosters from Gobound.com URLs.
+| Flag | Description |
+|---|---|
+| **Scores for Us** | Adds 1 to your score when this event is logged |
+| **Scores for Them** | Adds 1 to the opponent's score when this event is logged |
+| **Stop Clock** | Prompts the user to stop the clock when this event is logged |
 
 ## Usage Guide
 
@@ -152,7 +129,7 @@ Use the **Admin → Import Roster from Gobound** feature to auto-populate roster
 2. Enter the team password
 3. Enter the opponent name
 4. Click **Save Game** — select exactly 11 starters and confirm
-5. The game file is created on the server immediately
+5. The game file is created on the server and auto-saves after every event
 
 ### Tracking Events
 
@@ -167,29 +144,19 @@ Use the **Admin → Import Roster from Gobound** feature to auto-populate roster
 | Button | Action |
 |---|---|
 | Start / Stop | Manual clock control |
-| 1st Half | Resets to 40:00 and starts (confirms if game in progress) |
-| 2nd Half | Resets to 40:00 and starts (confirms if game in progress) |
-| Set | Opens a modal to set exact time and half |
+| 1st Half | Resets to 40:00 and starts (confirms if game is in progress) |
+| 2nd Half | Resets to 40:00 and starts (confirms if game is in progress) |
+| Set | Opens a modal to manually set the time and half |
 
 ### Scorecard
 
 - Tap **Scorecard** to open the read-only stats view in a new tab
 - Tap the link box below the button to copy the shareable URL to clipboard
-- The scorecard URL is stable — send it to anyone to follow along
+- The scorecard URL is stable — send it to parents, players, or anyone following along
 
 ### Saving
 
-The game auto-saves to the server after every event. A **Saved ✓** notification confirms each save. If the save fails, an alert is shown.
-
-### Admin Panel
-
-Access via the **Admin** button in the app (requires the admin password):
-
-- **Teams** — add, edit, activate/deactivate teams
-- **Import Roster from Gobound** — paste a Gobound.com roster URL to auto-import
-- **Roster** — view and edit roster files directly
-- **Events / Other Events** — customize event buttons and scoring flags
-- **Game Files** — view and delete saved games
+The game auto-saves to the server after every event. A **Saved ✓** notification confirms each save. If the connection is lost, an offline overlay appears and saves resume automatically when connectivity returns.
 
 ## Contributing / Feedback
 
