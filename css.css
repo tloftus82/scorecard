@@ -12,6 +12,9 @@ body, html {
   color: #e0e0e0;
   font-family: Arial, sans-serif;
   font-size: 16px;
+  /* Extend background into iPhone notch safe areas */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 /* ── Scoreboard (fixed top) ── */
@@ -28,6 +31,9 @@ body, html {
   border-bottom: 2px solid #3498db;
   box-shadow: 0 2px 8px rgba(0,0,0,0.6);
   padding: 4px 10px 6px;
+  /* Push content away from notch on either side */
+  padding-left: max(10px, env(safe-area-inset-left));
+  padding-right: max(10px, env(safe-area-inset-right));
   gap: 2px;
   backface-visibility: hidden;
   transform: translateZ(0);
