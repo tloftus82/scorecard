@@ -989,4 +989,217 @@ function updateScoreboard() {
   screen.orientation
     ? screen.orientation.addEventListener('change', () => setTimeout(renderPlayers, 100))
     : window.addEventListener('orientationchange', () => setTimeout(renderPlayers, 100));
+
+  // ── Voice Input ────────────────────────────────────────────────────────────
+
+  const VOICE_NUMBER_WORDS = {
+    'zero':0,'one':1,'two':2,'three':3,'four':4,'five':5,'six':6,'seven':7,
+    'eight':8,'nine':9,'ten':10,'eleven':11,'twelve':12,'thirteen':13,
+    'fourteen':14,'fifteen':15,'sixteen':16,'seventeen':17,'eighteen':18,
+    'nineteen':19,'twenty':20,'twenty one':21,'twenty-one':21,
+    'twenty two':22,'twenty-two':22,'twenty three':23,'twenty-three':23,
+    'twenty four':24,'twenty-four':24,'ninety nine':99,'ninety-nine':99
+  };
+
+  // More-specific aliases must come before less-specific ones
+  const VOICE_EVENT_ALIASES = [
+    { name: 'Goal Allowed',          other: false, keys: ['goal allowed','they scored','conceded','goal against'] },
+    { name: 'PK Against (Missed)',   other: false, keys: ['pk against missed','pk against miss','penalty against miss'] },
+    { name: 'PK Against (Scored)',   other: false, keys: ['pk against scored','pk against','penalty against scored','penalty against'] },
+    { name: 'PK (Missed)',           other: false, keys: ['pk missed','pk miss','penalty missed','penalty kick missed'] },
+    { name: 'PK (Scored)',           other: false, keys: ['pk scored','pk score','penalty scored','penalty kick scored','pk'] },
+    { name: 'Shot On Goal',          other: false, keys: ['shot on goal','shot on','on goal'] },
+    { name: 'Yellow Card',           other: false, keys: ['yellow card','yellow','caution','booking'] },
+    { name: 'Red Card',              other: false, keys: ['red card','red','sent off','ejected'] },
+    { name: 'Corner Kick (Them)',    other: true,  keys: ['corner kick them','their corner','corner them'] },
+    { name: 'Own Goal (Us)',         other: true,  keys: ['own goal us','own goal on us','our own goal'] },
+    { name: 'Own Goal (Them)',       other: true,  keys: ['own goal them','own goal by them','their own goal'] },
+    { name: 'Corner Kick',          other: false, keys: ['corner kick','corner'] },
+    { name: 'Entered Game (Starter)',other: false, keys: ['entered starter','entered as starter','entered starting'] },
+    { name: 'Entered Game (Sub)',    other: false, keys: ['entered sub','entered as sub','substitution','subbed in','sub in','came in'] },
+    { name: 'Save',                  other: false, keys: ['save','saved'] },
+    { name: 'Shot',                  other: false, keys: ['shot wide','shot miss','wide shot','missed shot','shot'] },
+    { name: 'Goal',                  other: false, keys: ['goal','scored','scores'] },
+  ];
+
+  function voiceMatchEvent(text) {
+    for (const alias of VOICE_EVENT_ALIASES) {
+      for (const key of alias.keys) {
+        if (text.includes(key)) return alias;
+      }
+    }
+    return null;
+  }
+
+  function voiceMatchPlayer(text, roster) {
+    if (!roster || !roster.length) return null;
+
+    // "number 7" or "#7"
+    const numDigit = text.match(/(?:number|#)\s*(\d+)/);
+    if (numDigit) {
+      const p = roster.find(r => r.number === parseInt(numDigit[1]));
+      if (p) return `${p.first_name} ${p.last_name}`;
+    }
+
+    // "number three" etc.
+    for (const [word, num] of Object.entries(VOICE_NUMBER_WORDS)) {
+      if (text.includes('number ' + word)) {
+        const p = roster.find(r => r.number === num);
+        if (p) return `${p.first_name} ${p.last_name}`;
+      }
+    }
+
+    // Full name ("allie loftus")
+    for (const p of roster) {
+      const full = (p.first_name + ' ' + p.last_name).toLowerCase();
+      if (text.includes(full)) return `${p.first_name} ${p.last_name}`;
+    }
+
+    // Unique first name
+    const firstHits = roster.filter(p => text.includes(p.first_name.toLowerCase()));
+    if (firstHits.length === 1) return `${firstHits[0].first_name} ${firstHits[0].last_name}`;
+
+    // Unique first word of last name
+    const lastHits = roster.filter(p => text.includes(p.last_name.split(' ')[0].toLowerCase()));
+    if (lastHits.length === 1) return `${lastHits[0].first_name} ${lastHits[0].last_name}`;
+
+    // Lone number word ("three goal" → player #3)
+    for (const [word, num] of Object.entries(VOICE_NUMBER_WORDS)) {
+      if (new RegExp(`\\b${word}\\b`).test(text)) {
+        const p = roster.find(r => r.number === num);
+        if (p) return `${p.first_name} ${p.last_name}`;
+      }
+    }
+
+    return null;
+  }
+
+  function parseVoiceTranscript(raw) {
+    let text = raw.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+
+    // Extract "assisted by X" / "assist X"
+    let assistPlayer = null;
+    const assistRe = /\b(?:assisted by|assist(?:ed)?(?:\s+by)?|with assist(?:\s+from)?)\s+(.+)$/;
+    const assistMatch = text.match(assistRe);
+    if (assistMatch) {
+      const assistText = assistMatch[1].trim();
+      text = text.replace(assistMatch[0], '').trim();
+      assistPlayer = voiceMatchPlayer(assistText, currentRoster);
+    }
+
+    const matchedEvent = voiceMatchEvent(text);
+    if (!matchedEvent) return { error: `Couldn't match an event in: "${raw}"` };
+
+    let playerName = null;
+    if (!matchedEvent.other) {
+      playerName = voiceMatchPlayer(text, currentRoster);
+      if (!playerName) return { error: `Couldn't identify a player in: "${raw}"` };
+    }
+
+    return { eventName: matchedEvent.name, isOther: matchedEvent.other, playerName, assistPlayer, raw };
+  }
+
+  async function logVoiceEvent(parsed) {
+    const { eventName, playerName, assistPlayer } = parsed;
+    const now = new Date().toISOString();
+    const timeRemaining = { minutes: Math.floor(clockSeconds / 60), seconds: clockSeconds % 60 };
+
+    const entry = { event: eventName, time: now, half: currentHalf, timeRemaining };
+    if (playerName) entry.player = playerName;
+    events.push(entry);
+
+    if (assistPlayer) {
+      events.push({ player: assistPlayer, event: 'Assist', time: now, half: currentHalf, timeRemaining });
+    }
+
+    const playerLine = playerName ? `<small><i>${playerName}</i></small><br>` : '';
+    const assistLine = assistPlayer ? `<br><small><i>Assist: ${assistPlayer}</i></small>` : '';
+    showNotification(`${playerLine}<b>${eventName}</b>${assistLine}`, 'success');
+
+    if (celebrationsEnabled && celebrationLookup[eventName]) {
+      launchFallingItems(celebrationLookup[eventName]);
+    }
+
+    renderEvents();
+    renderPlayers();
+    if (saved) saveGame(true);
+  }
+
+  const voiceBtn    = document.getElementById('voiceBtn');
+  const voiceStatus = document.getElementById('voiceStatus');
+  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognitionAPI) {
+    if (voiceBtn) voiceBtn.style.display = 'none';
+  } else {
+    let recognition   = null;
+    let voiceListening = false;
+    let voiceResult   = null;
+
+    function startVoice() {
+      if (!saved) { showAlert('Start a game first.'); return; }
+      if (voiceListening) return;
+      voiceListening = true;
+      voiceResult    = null;
+      voiceBtn.classList.add('recording');
+      voiceStatus.textContent = 'Listening…';
+
+      recognition = new SpeechRecognitionAPI();
+      recognition.continuous     = false;
+      recognition.interimResults = false;
+      recognition.lang           = 'en-US';
+
+      recognition.onresult = e => {
+        voiceResult = e.results[0][0].transcript;
+        voiceStatus.textContent = `"${voiceResult}"`;
+      };
+
+      recognition.onerror = e => {
+        voiceListening = false;
+        voiceBtn.classList.remove('recording');
+        voiceStatus.textContent = e.error === 'no-speech' ? 'Nothing heard — try again' : `Mic error: ${e.error}`;
+        setTimeout(() => { voiceStatus.textContent = ''; }, 3000);
+      };
+
+      recognition.onend = () => {
+        voiceListening = false;
+        voiceBtn.classList.remove('recording');
+        if (voiceResult) processVoiceResult(voiceResult);
+        else setTimeout(() => { voiceStatus.textContent = ''; }, 1500);
+      };
+
+      recognition.start();
+    }
+
+    function stopVoice() {
+      if (recognition && voiceListening) recognition.stop();
+    }
+
+    voiceBtn.addEventListener('mousedown',  e => { e.preventDefault(); startVoice(); });
+    voiceBtn.addEventListener('touchstart', e => { e.preventDefault(); startVoice(); }, { passive: false });
+    voiceBtn.addEventListener('mouseup',    stopVoice);
+    voiceBtn.addEventListener('mouseleave', stopVoice);
+    voiceBtn.addEventListener('touchend',   e => { e.preventDefault(); stopVoice(); }, { passive: false });
+
+    async function processVoiceResult(transcript) {
+      const parsed = parseVoiceTranscript(transcript);
+
+      if (parsed.error) {
+        voiceStatus.textContent = '';
+        await showAlert(`🎤 ${parsed.error}`);
+        return;
+      }
+
+      let msg = `<small style="color:#888;">Heard: "${transcript}"</small><br><br>`;
+      if (parsed.playerName)  msg += `<b>Player:</b> ${parsed.playerName}<br>`;
+      msg += `<b>Event:</b> ${parsed.eventName}`;
+      if (parsed.assistPlayer) msg += `<br><b>Assist:</b> ${parsed.assistPlayer}`;
+
+      const confirmed = await showConfirm(msg, 'Log It', 'Cancel');
+      voiceStatus.textContent = '';
+      if (confirmed) await logVoiceEvent(parsed);
+    }
+  }
+
+  // ── End Voice Input ────────────────────────────────────────────────────────
 });

@@ -101,6 +101,11 @@
 
       <div id="gameSection" style="display:none;">
 
+        <div class="voice-row">
+          <button id="voiceBtn" class="voice-btn">🎤 Hold to Speak</button>
+          <div id="voiceStatus" class="voice-status"></div>
+        </div>
+
         <div class="game-columns">
 
           <div class="game-col-players">
