@@ -213,6 +213,7 @@ document.addEventListener('DOMContentLoaded', function() {
       button.addEventListener('click', function () {
         if (!saved) return;
         if (selectedPlayerButton) selectedPlayerButton.classList.remove('selected');
+        if (selectedPlayerButton === this) { selectedPlayerButton = null; return; }
         selectedPlayerButton = this;
         this.classList.add('selected');
       });
