@@ -341,7 +341,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         showNotification(`<small><i>${player}</i></small><br><b>${eventName}</b>${assistLine}${warning}`, clockWasRunning ? 'success' : 'warning');
 
         if (celebrationsEnabled && celebrationLookup[eventName]) {
-          launchFallingItems(celebrationLookup[eventName]);
+          const ctype = celebrationLookup[eventName];
+          if (ctype === 'wall') flashEmoji('🧱');
+          else launchFallingItems(ctype);
         }
 
         // Deselect before re-rendering — renderPlayers() destroys the old button nodes
@@ -559,6 +561,14 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   function showGoalCelebration() {
     launchFallingItems('ball');
+  }
+
+  function flashEmoji(emoji) {
+    const el = document.createElement('div');
+    el.className = 'emoji-flash';
+    el.textContent = emoji;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 800);
   }
 
   function updateScoreboard() {

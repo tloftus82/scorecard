@@ -712,6 +712,25 @@ li button {
 }
 
 
+/* ── Emoji flash overlay ── */
+.emoji-flash {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 120px;
+  z-index: 100001;
+  pointer-events: none;
+  animation: emoji-flash-anim 0.8s ease forwards;
+}
+
+@keyframes emoji-flash-anim {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  20%  { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  70%  { opacity: 1; transform: translate(-50%, -50%) scale(1);   }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+
 /* ── Falling items (balls, cards) ── */
 .falling-item {
   position: fixed;

@@ -4,7 +4,7 @@
     { "name": "Goal",                   "us": 1, "them": 0, "stop_clock": true,  "prompt_assist": true },
     { "name": "Assist",                 "us": 0, "them": 0, "stop_clock": false },
     { "name": "Corner Kick",            "us": 0, "them": 0, "stop_clock": false },
-    { "name": "Save",                   "us": 0, "them": 0, "stop_clock": false },
+    { "name": "Save",                   "us": 0, "them": 0, "stop_clock": false, "celebration": "wall" },
     { "name": "Goal Allowed",           "us": 0, "them": 1, "stop_clock": true  },
     { "name": "PK (Scored)",            "us": 1, "them": 0, "stop_clock": false },
     { "name": "PK (Missed)",            "us": 0, "them": 0, "stop_clock": false },
