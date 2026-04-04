@@ -393,6 +393,11 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         const warning = clockWasRunning ? '' : '<br><small>⚠️ Clock was not running</small>';
         showNotification(`<b>${eventName}</b>${warning}`, clockWasRunning ? 'success' : 'warning');
+
+        if (celebrationsEnabled && celebrationLookup[eventName]) {
+          launchFallingItems(celebrationLookup[eventName]);
+        }
+
         renderEvents();
         updateScoreboard();
         if (saved) saveGame(true);
@@ -548,7 +553,7 @@ document.addEventListener('DOMContentLoaded', async function() {
           el.style.transform = `scale(${scale})`;
         } else {
           el.className = 'falling-item ball';
-          el.textContent = type === 'wall' ? '🧱' : '⚽';
+          el.textContent = type === 'wall' ? '🧱' : type === 'poop' ? '💩' : '⚽';
           const size = 24 + Math.random() * 28;
           el.style.fontSize = size + 'px';
         }

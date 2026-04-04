@@ -1,5 +1,5 @@
 [
     { "name": "Corner Kick (Them)", "us": 0, "them": 0, "stop_clock": false },
     { "name": "Own Goal (Them)",    "us": 1, "them": 0, "stop_clock": true  },
-    { "name": "Own Goal (Us)",      "us": 0, "them": 1, "stop_clock": true  }
+    { "name": "Own Goal (Us)",      "us": 0, "them": 1, "stop_clock": true,  "celebration": "poop" }
 ]
