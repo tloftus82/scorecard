@@ -219,7 +219,9 @@ document.addEventListener('DOMContentLoaded', async function() {
   function renderPlayers() {
     playerButtonsContainer.innerHTML = '';
     const sortValue = sortSelect.value;
-    const cols = 3;
+    // Read actual column count from the computed grid style so landscape (2 cols) sorts correctly
+    const computedCols = getComputedStyle(playerButtonsContainer).gridTemplateColumns.split(' ').length;
+    const cols = computedCols > 1 ? computedCols : 3;
 
     let sorted;
     if (sortValue === 'first') {
