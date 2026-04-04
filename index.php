@@ -87,6 +87,7 @@
         <div class="setup-buttons">
           <button id="saveGameButton">Save Game</button>
           <button id="loadGameButton">Load Game</button>
+          <button onclick="window.open('admin.php','_blank')" style="background:#2c3e50;">Admin</button>
         </div>
       </div>
 
