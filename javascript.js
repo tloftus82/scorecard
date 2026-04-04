@@ -1131,27 +1131,39 @@ function updateScoreboard() {
   const voiceModalLog    = document.getElementById('voiceModalLog');
   const voiceModalCancel = document.getElementById('voiceModalCancel');
 
-  function showVoiceConfirm(parsed) {
+  function showVoiceModal(parsed) {
     return new Promise(resolve => {
       voiceModalHeard.textContent = `Heard: "${parsed.raw}"`;
       voiceModalResult.innerHTML  = '';
-      if (parsed.playerName) {
-        const p = document.createElement('div');
-        p.innerHTML = `<span style="color:#aaa;">Player:</span> <strong>${parsed.playerName}</strong>`;
-        voiceModalResult.appendChild(p);
-      }
-      const ev = document.createElement('div');
-      ev.innerHTML = `<span style="color:#aaa;">Event:</span> <strong>${parsed.eventName}</strong>`;
-      voiceModalResult.appendChild(ev);
-      if (parsed.assistPlayer) {
-        const a = document.createElement('div');
-        a.innerHTML = `<span style="color:#aaa;">Assist:</span> <strong>${parsed.assistPlayer}</strong>`;
-        voiceModalResult.appendChild(a);
+
+      if (parsed.error) {
+        const msg = document.createElement('div');
+        msg.style.cssText = 'color:#e74c3c;font-size:15px;margin:4px 0;';
+        msg.textContent = 'No match found';
+        voiceModalResult.appendChild(msg);
+        voiceModalLog.style.display    = 'none';
+        voiceModalCancel.textContent   = 'OK';
+      } else {
+        if (parsed.playerName) {
+          const p = document.createElement('div');
+          p.innerHTML = `<span style="color:#aaa;">Player:</span> <strong>${parsed.playerName}</strong>`;
+          voiceModalResult.appendChild(p);
+        }
+        const ev = document.createElement('div');
+        ev.innerHTML = `<span style="color:#aaa;">Event:</span> <strong>${parsed.eventName}</strong>`;
+        voiceModalResult.appendChild(ev);
+        if (parsed.assistPlayer) {
+          const a = document.createElement('div');
+          a.innerHTML = `<span style="color:#aaa;">Assist:</span> <strong>${parsed.assistPlayer}</strong>`;
+          voiceModalResult.appendChild(a);
+        }
+        voiceModalLog.style.display  = '';
+        voiceModalCancel.textContent = 'Cancel';
       }
 
       voiceModal.style.display = 'flex';
 
-      const onLog = () => { cleanup(); resolve(true); };
+      const onLog    = () => { cleanup(); resolve(true);  };
       const onCancel = () => { cleanup(); resolve(false); };
       function cleanup() {
         voiceModal.style.display = 'none';
@@ -1221,16 +1233,9 @@ function updateScoreboard() {
 
     async function processVoiceResult(transcript) {
       const parsed = parseVoiceTranscript(transcript);
-
-      if (parsed.error) {
-        voiceStatus.textContent = `⚠️ ${parsed.error}`;
-        setTimeout(() => { voiceStatus.textContent = ''; }, 4000);
-        return;
-      }
-
-      const confirmed = await showVoiceConfirm(parsed);
+      const confirmed = await showVoiceModal(parsed);
       voiceStatus.textContent = '';
-      if (confirmed) await logVoiceEvent(parsed);
+      if (confirmed && !parsed.error) await logVoiceEvent(parsed);
     }
   }
 
