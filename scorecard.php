@@ -390,8 +390,8 @@ foreach ($events as $event) {
     if (in_array($event['event'], ['Goal Allowed', 'PK Against (Scored)', 'Own Goal (Us)'])):
     ?>
         <li>
-            <?php echo $event['event']; ?>
- - <?php 
+            <?php echo $event['event']; ?><?php echo isset($event['player']) && $event['player'] !== '' ? ' — ' . htmlspecialchars($event['player']) : ''; ?>
+ - <?php
                 if ($event['half'] == '1') {
                     echo '1st';  // 1st half
                 } elseif ($event['half'] == '2') {

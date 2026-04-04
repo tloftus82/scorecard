@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
   const eventListElement = document.getElementById('eventList');
   const playerButtonsContainer = document.getElementById('playerButtons');
   const eventButtonsContainer = document.getElementById('eventButtons');
@@ -176,7 +176,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }));
     xhr.onload = function() {
-      if (xhr.status !== 200) showAlert('Error saving game.');
+      if (xhr.status === 200) {
+        showNotification('Saved ✓', 'success');
+      } else {
+        showAlert('Error saving game.');
+      }
     };
   }
 
@@ -190,15 +194,16 @@ document.addEventListener('DOMContentLoaded', function() {
     playerButtonsContainer.innerHTML = '';
     const sortValue = sortSelect.value;
 
+    let sorted;
     if (sortValue === 'first') {
-      currentRoster.sort((a, b) => a.first_name.localeCompare(b.first_name));
+      sorted = currentRoster.slice().sort((a, b) => a.first_name.localeCompare(b.first_name));
     } else if (sortValue === 'last') {
-      currentRoster.sort((a, b) => a.last_name.localeCompare(b.last_name));
+      sorted = currentRoster.slice().sort((a, b) => a.last_name.localeCompare(b.last_name));
     } else {
-      currentRoster.sort((a, b) => (parseInt(a.number) || 0) - (parseInt(b.number) || 0));
+      sorted = currentRoster.slice().sort((a, b) => (parseInt(a.number) || 0) - (parseInt(b.number) || 0));
     }
 
-    currentRoster.forEach(player => {
+    sorted.forEach(player => {
       const button = document.createElement('button');
       button.className = 'player-button';
       button.setAttribute('data-player', `${player.first_name} ${player.last_name}`);
@@ -257,12 +262,11 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         });
 
-        if (eventName === 'Goal' || eventName === 'Goal Allowed') await promptToStopClock();
+        if (stopClockLookup.has(eventName)) await promptToStopClock();
 
         const warning = clockWasRunning ? '' : '<br><small>⚠️ Clock was not running</small>';
         showNotification(`<small><i>${player}</i></small><br><b>${eventName}</b>${warning}`, clockWasRunning ? 'success' : 'warning');
         renderEvents();
-        updateScoreboard();
         renderPlayers();
         if (saved) saveGame();
 
@@ -301,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         });
 
-        if (eventName === 'Own Goal (Them)' || eventName === 'Own Goal (Us)') await promptToStopClock();
+        if (stopClockLookup.has(eventName)) await promptToStopClock();
 
         const warning = clockWasRunning ? '' : '<br><small>⚠️ Clock was not running</small>';
         showNotification(`<b>${eventName}</b>${warning}`, clockWasRunning ? 'success' : 'warning');
@@ -316,14 +320,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function flashScoreboard() {
     const scoreboard = document.getElementById('scoreboard');
-    let flashes = 0;
-    const flashInterval = setInterval(() => {
-      scoreboard.classList.toggle('flash');
-      if (++flashes >= 6) {
-        clearInterval(flashInterval);
-        scoreboard.classList.remove('flash');
-      }
-    }, 200);
+    scoreboard.classList.remove('scoreboard-flash');
+    void scoreboard.offsetWidth; // force reflow to restart animation if called twice
+    scoreboard.classList.add('scoreboard-flash');
+    scoreboard.addEventListener('animationend', () => scoreboard.classList.remove('scoreboard-flash'), { once: true });
   }
 
   // Build score lookup from events/otherEvents flags (best practice: no hardcoded names)
@@ -331,6 +331,11 @@ document.addEventListener('DOMContentLoaded', function() {
   [...eventsList, ...otherEvents].forEach(e => {
     scoreLookup[e.name] = { us: e.us || 0, them: e.them || 0 };
   });
+
+  // Build stop-clock lookup from flags
+  const stopClockLookup = new Set(
+    [...eventsList, ...otherEvents].filter(e => e.stop_clock).map(e => e.name)
+  );
 
   function renderEvents() {
     eventListElement.innerHTML = '';
@@ -465,9 +470,10 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    fetch('list_games.php?nocache=' + Date.now())
+    const encodedTeam = encodeURIComponent(selectedTeamName);
+    fetch(`list_games.php?team=${encodedTeam}&nocache=` + Date.now())
       .then(r => r.json())
-      .then(files => {
+      .then(games => {
         loadMenu.innerHTML = '';
         const header = document.createElement('div');
         header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;';
@@ -479,29 +485,22 @@ document.addEventListener('DOMContentLoaded', function() {
         header.appendChild(closeBtn);
         loadMenu.appendChild(header);
 
-        const fetches = files.map(file =>
-          fetch('games/' + file + '?nocache=' + Date.now())
-            .then(r => r.json())
-            .then(json => json.team === selectedTeamName ? file : null)
-            .catch(() => null)
-        );
-
-        Promise.all(fetches).then(results => {
-          const matching = results.filter(Boolean).sort((a, b) => b.localeCompare(a));
-          if (matching.length === 0) {
-            loadMenu.innerHTML += '<p style="font-size:13px;color:#aaa;padding:4px;">No games found for this team.</p>';
-          } else {
-            matching.forEach(file => {
-              const btn = document.createElement('button');
-              const { dateStr, opp } = parseGameFilename(file);
-              btn.textContent = opp ? `${dateStr} — vs. ${opp}` : file;
-              btn.style.cssText = 'text-align:left;font-size:13px;';
-              btn.addEventListener('click', () => loadSelectedGame(file));
-              loadMenu.appendChild(btn);
-            });
-          }
-          loadMenu.style.display = 'block';
-        });
+        if (games.length === 0) {
+          const p = document.createElement('p');
+          p.style.cssText = 'font-size:13px;color:#aaa;padding:4px;';
+          p.textContent = 'No games found for this team.';
+          loadMenu.appendChild(p);
+        } else {
+          games.forEach(({ file, opponent }) => {
+            const btn = document.createElement('button');
+            const { dateStr } = parseGameFilename(file);
+            btn.textContent = opponent ? `${dateStr} — vs. ${opponent}` : file;
+            btn.style.cssText = 'text-align:left;font-size:13px;';
+            btn.addEventListener('click', () => loadSelectedGame(file));
+            loadMenu.appendChild(btn);
+          });
+        }
+        loadMenu.style.display = 'block';
       });
   });
 
@@ -598,9 +597,6 @@ document.addEventListener('DOMContentLoaded', function() {
     loadGameButton.style.display = 'none';
     showGameSection();
     updateScorecardLink();
-    renderPlayers();
-    renderEventButtons();
-    renderOtherEventButtons();
     renderEvents();
     updateScoreboard();
 
@@ -715,7 +711,8 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('stopClockButton').addEventListener('click', stopClock);
   document.getElementById('setClockButton').addEventListener('click', setClock);
 
-  document.getElementById('startFirstHalfButton').addEventListener('click', function() {
+  document.getElementById('startFirstHalfButton').addEventListener('click', async function() {
+    if (saved && !await showConfirm('Reset clock to 1st Half?', 'Reset', 'Cancel')) return;
     stopClock();
     clockSeconds = 40 * 60;
     currentHalf = 1;
@@ -724,7 +721,8 @@ document.addEventListener('DOMContentLoaded', function() {
     startClock();
   });
 
-  document.getElementById('startSecondHalfButton').addEventListener('click', function() {
+  document.getElementById('startSecondHalfButton').addEventListener('click', async function() {
+    if (saved && !await showConfirm('Reset clock to 2nd Half?', 'Reset', 'Cancel')) return;
     stopClock();
     clockSeconds = 40 * 60;
     currentHalf = 2;
@@ -740,11 +738,10 @@ document.addEventListener('DOMContentLoaded', function() {
   setButtonState('startSecondHalfButton', true);
   updateScoreboard();
 
+  await restoreSessionState();
+  renderEventButtons();
   renderOtherEventButtons();
   renderPlayers();
-  renderEventButtons();
-
-  restoreSessionState();
 
   function parseGameFilename(f) {
     try {

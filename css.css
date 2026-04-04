@@ -34,9 +34,18 @@ body, html {
   transform: translateZ(0);
 }
 
-#scoreboard.flash {
-  background-color: #e74c3c;
-  transition: background-color 0.3s ease;
+#scoreboard.scoreboard-flash {
+  animation: scoreboard-flash 1.2s ease forwards;
+}
+
+@keyframes scoreboard-flash {
+  0%   { background-color: #121212; }
+  16%  { background-color: #27ae60; }
+  33%  { background-color: #121212; }
+  50%  { background-color: #27ae60; }
+  66%  { background-color: #121212; }
+  83%  { background-color: #27ae60; }
+  100% { background-color: #121212; }
 }
 
 .score-clock-container {
@@ -678,7 +687,14 @@ li button:hover {
   border: 1px solid #444;
   background-color: #1e1e1e;
   color: #aaa;
-  margin-bottom: 10px;
+  margin-bottom: 2px;
   cursor: pointer;
   caret-color: transparent;
+}
+
+.scorecard-link-hint {
+  font-size: 11px;
+  color: #555;
+  text-align: center;
+  margin-bottom: 10px;
 }

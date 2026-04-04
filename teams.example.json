@@ -1,0 +1,9 @@
+[
+    {
+        "name": "Example Team",
+        "year": 2026,
+        "roster": "rosters/roster_example_2026.json",
+        "password": "098f6bcd4621d373cade4e832627b4f6",
+        "is_active": 1
+    }
+]

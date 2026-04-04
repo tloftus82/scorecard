@@ -8,6 +8,7 @@
 
     if (isset($data['filename']) && isset($data['data'])) {
       $filename = preg_replace('/[^a-zA-Z0-9_-]/', '', $data['filename']);
+      if (!is_dir('games')) mkdir('games', 0755, true);
       $filepath = "games/" . $filename . ".json";
       file_put_contents($filepath, json_encode($data['data'], JSON_PRETTY_PRINT));
       http_response_code(200);
@@ -122,6 +123,7 @@
 
         <button id="scorecardButton" class="scorecard-bottom-btn">Scorecard</button>
         <input id="scorecardLink" class="scorecard-link-box" type="text" readonly placeholder="Scorecard link will appear here">
+        <div class="scorecard-link-hint">Tap link to copy</div>
         <div class="setup-buttons" style="margin-bottom:10px;">
           <button id="closeGameButton" style="background:#555;">Close Game</button>
           <button onclick="window.open('admin.php','_blank')" style="background:#2c3e50;">Admin</button>
