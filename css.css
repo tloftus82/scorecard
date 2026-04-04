@@ -314,6 +314,7 @@ h2 {
   gap: 4px;
   margin-bottom: 2px;
   width: 100%;
+  align-items: start;
 }
 
 .player-button {
@@ -439,7 +440,7 @@ h2 {
   border-radius: 8px;
   width: 100%;
   min-height: 120px;
-  max-height: 200px;
+  max-height: 400px;
   overflow-y: auto;
   margin-bottom: 6px;
   -webkit-overflow-scrolling: touch;
@@ -784,6 +785,6 @@ li button:hover {
   }
 
   .event-window {
-    max-height: 160px;
+    max-height: 320px;
   }
 }
