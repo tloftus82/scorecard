@@ -87,6 +87,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   let events = [];
   let saved = false;
   let filename = '';
+  let celebrationsEnabled = false;
   let selectedPlayerButton = null;
   let selectedEventButton = null;
   let usScore = 0;
@@ -551,7 +552,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (usScore !== prevUs) {
       animateCount(usScoreElement, prevUs, usScore, cls);
       popScoreElement(usScoreElement);
-      if (usScore > prevUs) showGoalCelebration();
+      if (usScore > prevUs && celebrationsEnabled) showGoalCelebration();
     } else {
       usScoreElement.textContent = usScore;
     }
@@ -921,6 +922,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   renderEventButtons();
   renderOtherEventButtons();
   renderPlayers();
+  celebrationsEnabled = true;
 
   function parseGameFilename(f) {
     try {
