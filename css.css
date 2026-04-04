@@ -712,20 +712,32 @@ li button {
 }
 
 
-/* ── Falling soccer balls ── */
-.falling-ball {
+/* ── Falling items (balls, cards) ── */
+.falling-item {
   position: fixed;
   top: -80px;
-  font-size: 36px;
   z-index: 100000;
   pointer-events: none;
-  animation: ball-fall linear forwards;
+  animation: item-fall linear forwards;
 }
 
-@keyframes ball-fall {
-  0%   { transform: translateY(0) rotate(0deg);   opacity: 1; }
+.falling-item.ball {
+  font-size: 36px;
+}
+
+.falling-item.card {
+  width: 22px;
+  height: 30px;
+  border-radius: 3px;
+}
+
+.falling-item.card-yellow { background: #f1c40f; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+.falling-item.card-red    { background: #e74c3c; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+
+@keyframes item-fall {
+  0%   { transform: translateY(0) rotate(0deg);      opacity: 1; }
   80%  { opacity: 1; }
-  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  100% { transform: translateY(110vh) rotate(540deg); opacity: 0; }
 }
 
 /* ── Player button ripple ── */

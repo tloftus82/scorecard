@@ -340,6 +340,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         const assistLine = assistPlayer ? `<br><small><i>Assist: ${assistPlayer}</i></small>` : '';
         showNotification(`<small><i>${player}</i></small><br><b>${eventName}</b>${assistLine}${warning}`, clockWasRunning ? 'success' : 'warning');
 
+        if (celebrationsEnabled && celebrationLookup[eventName]) {
+          launchFallingItems(celebrationLookup[eventName]);
+        }
+
         // Deselect before re-rendering — renderPlayers() destroys the old button nodes
         if (selectedEventButton) selectedEventButton.classList.remove('selected');
         selectedEventButton = null;
@@ -419,6 +423,12 @@ document.addEventListener('DOMContentLoaded', async function() {
   const promptAssistLookup = new Set(
     [...eventsList, ...otherEvents].filter(e => e.prompt_assist).map(e => e.name)
   );
+
+  // Build celebration lookup: eventName → celebration type
+  const celebrationLookup = {};
+  [...eventsList, ...otherEvents].forEach(e => {
+    if (e.celebration) celebrationLookup[e.name] = e.celebration;
+  });
 
   function showAssistModal(scorerName) {
     return new Promise(resolve => {
@@ -520,27 +530,35 @@ document.addEventListener('DOMContentLoaded', async function() {
     }, interval);
   }
 
-  function launchFallingBalls() {
+  function launchFallingItems(type) {
     const count = 44;
     for (let i = 0; i < count; i++) {
       setTimeout(() => {
-        const ball = document.createElement('span');
-        ball.className = 'falling-ball';
-        ball.textContent = '⚽';
-        const size = 24 + Math.random() * 28;
+        const el = document.createElement('span');
         const duration = 1.2 + Math.random() * 1.4;
         const left = Math.random() * 100;
-        ball.style.left = left + 'vw';
-        ball.style.fontSize = size + 'px';
-        ball.style.animationDuration = duration + 's';
-        document.body.appendChild(ball);
-        setTimeout(() => ball.remove(), duration * 1000);
+        el.style.left = left + 'vw';
+        el.style.animationDuration = duration + 's';
+
+        if (type === 'yellow' || type === 'red') {
+          el.className = `falling-item card card-${type}`;
+          const scale = 0.7 + Math.random() * 0.8;
+          el.style.transform = `scale(${scale})`;
+        } else {
+          el.className = 'falling-item ball';
+          el.textContent = '⚽';
+          const size = 24 + Math.random() * 28;
+          el.style.fontSize = size + 'px';
+        }
+
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), duration * 1000);
       }, i * 60);
     }
   }
 
   function showGoalCelebration() {
-    launchFallingBalls();
+    launchFallingItems('ball');
   }
 
   function updateScoreboard() {
