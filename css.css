@@ -843,6 +843,19 @@ li button {
   font-style: italic;
 }
 
+.voice-modal-heard {
+  font-size: 13px;
+  color: #888;
+  font-style: italic;
+  margin-bottom: 12px;
+}
+
+.voice-modal-result {
+  font-size: 17px;
+  line-height: 1.7;
+  margin-bottom: 4px;
+}
+
 /* ── Scorecard bottom button ── */
 
 .scorecard-bottom-btn {

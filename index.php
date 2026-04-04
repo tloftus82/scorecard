@@ -173,6 +173,19 @@
       </div>
     </div>
 
+    <!-- Voice confirm modal -->
+    <div id="voiceModal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <h2>🎤 Log Event?</h2>
+        <p id="voiceModalHeard" class="voice-modal-heard"></p>
+        <div id="voiceModalResult" class="voice-modal-result"></div>
+        <div class="modal-buttons">
+          <button id="voiceModalLog">Log It</button>
+          <button id="voiceModalCancel" class="btn-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Generic alert/confirm/prompt modal -->
     <div id="appModal" class="modal" style="display:none;">
       <div class="modal-content">

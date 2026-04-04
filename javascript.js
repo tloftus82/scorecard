@@ -1125,6 +1125,44 @@ function updateScoreboard() {
     if (saved) saveGame(true);
   }
 
+  const voiceModal       = document.getElementById('voiceModal');
+  const voiceModalHeard  = document.getElementById('voiceModalHeard');
+  const voiceModalResult = document.getElementById('voiceModalResult');
+  const voiceModalLog    = document.getElementById('voiceModalLog');
+  const voiceModalCancel = document.getElementById('voiceModalCancel');
+
+  function showVoiceConfirm(parsed) {
+    return new Promise(resolve => {
+      voiceModalHeard.textContent = `Heard: "${parsed.raw}"`;
+      voiceModalResult.innerHTML  = '';
+      if (parsed.playerName) {
+        const p = document.createElement('div');
+        p.innerHTML = `<span style="color:#aaa;">Player:</span> <strong>${parsed.playerName}</strong>`;
+        voiceModalResult.appendChild(p);
+      }
+      const ev = document.createElement('div');
+      ev.innerHTML = `<span style="color:#aaa;">Event:</span> <strong>${parsed.eventName}</strong>`;
+      voiceModalResult.appendChild(ev);
+      if (parsed.assistPlayer) {
+        const a = document.createElement('div');
+        a.innerHTML = `<span style="color:#aaa;">Assist:</span> <strong>${parsed.assistPlayer}</strong>`;
+        voiceModalResult.appendChild(a);
+      }
+
+      voiceModal.style.display = 'flex';
+
+      const onLog = () => { cleanup(); resolve(true); };
+      const onCancel = () => { cleanup(); resolve(false); };
+      function cleanup() {
+        voiceModal.style.display = 'none';
+        voiceModalLog.removeEventListener('click', onLog);
+        voiceModalCancel.removeEventListener('click', onCancel);
+      }
+      voiceModalLog.addEventListener('click', onLog);
+      voiceModalCancel.addEventListener('click', onCancel);
+    });
+  }
+
   const voiceBtn    = document.getElementById('voiceBtn');
   const voiceStatus = document.getElementById('voiceStatus');
   const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1185,17 +1223,12 @@ function updateScoreboard() {
       const parsed = parseVoiceTranscript(transcript);
 
       if (parsed.error) {
-        voiceStatus.textContent = '';
-        await showAlert(`🎤 ${parsed.error}`);
+        voiceStatus.textContent = `⚠️ ${parsed.error}`;
+        setTimeout(() => { voiceStatus.textContent = ''; }, 4000);
         return;
       }
 
-      let msg = `<small style="color:#888;">Heard: "${transcript}"</small><br><br>`;
-      if (parsed.playerName)  msg += `<b>Player:</b> ${parsed.playerName}<br>`;
-      msg += `<b>Event:</b> ${parsed.eventName}`;
-      if (parsed.assistPlayer) msg += `<br><b>Assist:</b> ${parsed.assistPlayer}`;
-
-      const confirmed = await showConfirm(msg, 'Log It', 'Cancel');
+      const confirmed = await showVoiceConfirm(parsed);
       voiceStatus.textContent = '';
       if (confirmed) await logVoiceEvent(parsed);
     }
