@@ -413,7 +413,13 @@ document.addEventListener('DOMContentLoaded', function() {
       checkbox.type = 'checkbox';
       checkbox.value = `${player.first_name} ${player.last_name}`;
       checkbox.checked = player.default_starter === 1;
-      checkbox.addEventListener('change', updateStarterCount);
+      checkbox.addEventListener('change', function() {
+        if (this.checked) {
+          const total = starterList.querySelectorAll('input[type="checkbox"]:checked').length;
+          if (total > 11) { this.checked = false; return; }
+        }
+        updateStarterCount();
+      });
       label.appendChild(checkbox);
       label.appendChild(document.createTextNode(` ${player.first_name} ${player.last_name} (No. ${player.number})`));
       starterList.appendChild(label);
