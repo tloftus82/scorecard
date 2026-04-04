@@ -326,13 +326,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 200);
   }
 
+  // Build score lookup from events/otherEvents flags (best practice: no hardcoded names)
+  const scoreLookup = {};
+  [...eventsList, ...otherEvents].forEach(e => {
+    scoreLookup[e.name] = { us: e.us || 0, them: e.them || 0 };
+  });
+
   function renderEvents() {
     eventListElement.innerHTML = '';
     usScore = 0;
     themScore = 0;
 
     events.slice().reverse().forEach((event, index) => {
-      const playerName = event.player || 'N/A';
+      const playerName = event.player || '';
 
       const li = document.createElement('li');
       const span = document.createElement('span');
@@ -350,12 +356,9 @@ document.addEventListener('DOMContentLoaded', function() {
       li.appendChild(btn);
       eventListElement.appendChild(li);
 
-      switch (event.event) {
-        case 'Goal': case 'PK (Scored)': case 'Own Goal (Them)':
-          usScore++; break;
-        case 'Goal Allowed': case 'PK Against (Scored)': case 'Own Goal (Us)':
-          themScore++; break;
-      }
+      const scoring = scoreLookup[event.event] || { us: 0, them: 0 };
+      usScore += scoring.us;
+      themScore += scoring.them;
     });
 
     updateScoreboard();
@@ -376,7 +379,10 @@ document.addEventListener('DOMContentLoaded', function() {
     themScoreElement.className = cls;
   }
 
-  window.deleteEvent = function(index) {
+  window.deleteEvent = async function(index) {
+    const e = events[index];
+    const label = e.event + (e.player ? ` — ${e.player}` : '');
+    if (!await showConfirm(`Delete "${label}"?`, 'Delete', 'Cancel')) return;
     events.splice(index, 1);
     renderEvents();
     renderPlayers();
@@ -393,19 +399,27 @@ document.addEventListener('DOMContentLoaded', function() {
     showStarterModal();
   });
 
+  function updateStarterCount() {
+    const checked = starterList.querySelectorAll('input[type="checkbox"]:checked').length;
+    const el = document.getElementById('starterCount');
+    if (el) el.textContent = `(${checked} of 11)`;
+  }
+
   function showStarterModal() {
     starterList.innerHTML = '';
-    currentRoster.slice().sort((a, b) => a.number - b.number).forEach(player => {
+    currentRoster.slice().sort((a, b) => (parseInt(a.number) || 0) - (parseInt(b.number) || 0)).forEach(player => {
       const label = document.createElement('label');
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.value = `${player.first_name} ${player.last_name}`;
       checkbox.checked = player.default_starter === 1;
+      checkbox.addEventListener('change', updateStarterCount);
       label.appendChild(checkbox);
       label.appendChild(document.createTextNode(` ${player.first_name} ${player.last_name} (No. ${player.number})`));
       starterList.appendChild(label);
       starterList.appendChild(document.createElement('br'));
     });
+    updateStarterCount();
     starterModal.style.display = 'flex';
   }
 
@@ -448,7 +462,17 @@ document.addEventListener('DOMContentLoaded', function() {
     fetch('list_games.php?nocache=' + Date.now())
       .then(r => r.json())
       .then(files => {
-        loadMenu.innerHTML = '<h3>Select a game to load:</h3>';
+        loadMenu.innerHTML = '';
+        const header = document.createElement('div');
+        header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;';
+        header.innerHTML = '<h3 style="margin:0;font-size:13px;">Select a game to load:</h3>';
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '✕';
+        closeBtn.style.cssText = 'background:#555;width:28px;height:28px;padding:0;font-size:14px;flex-shrink:0;';
+        closeBtn.addEventListener('click', () => { loadMenu.style.display = 'none'; });
+        header.appendChild(closeBtn);
+        loadMenu.appendChild(header);
+
         const fetches = files.map(file =>
           fetch('games/' + file + '?nocache=' + Date.now())
             .then(r => r.json())
@@ -459,11 +483,13 @@ document.addEventListener('DOMContentLoaded', function() {
         Promise.all(fetches).then(results => {
           const matching = results.filter(Boolean).sort((a, b) => b.localeCompare(a));
           if (matching.length === 0) {
-            loadMenu.innerHTML += '<p>No games found for this team.</p>';
+            loadMenu.innerHTML += '<p style="font-size:13px;color:#aaa;padding:4px;">No games found for this team.</p>';
           } else {
             matching.forEach(file => {
               const btn = document.createElement('button');
-              btn.textContent = file;
+              const { dateStr, opp } = parseGameFilename(file);
+              btn.textContent = opp ? `${dateStr} — vs. ${opp}` : file;
+              btn.style.cssText = 'text-align:left;font-size:13px;';
               btn.addEventListener('click', () => loadSelectedGame(file));
               loadMenu.appendChild(btn);
             });
@@ -714,15 +740,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
   restoreSessionState();
 
+  function parseGameFilename(f) {
+    try {
+      const parts = f.replace('.json', '').split('_');
+      const date = new Date(parts[0] + 'T12:00:00');
+      const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const teamRaw = (parts[2] || '').replace(/\d{4}$/, '');
+      const oppRaw  = parts.slice(3).join(' ');
+      const fmt = s => s.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2').trim();
+      return { dateStr, team: fmt(teamRaw), opp: fmt(oppRaw) };
+    } catch(e) { return { dateStr: f, team: '', opp: '' }; }
+  }
+
+  document.getElementById('closeGameButton').addEventListener('click', async function() {
+    if (!await showConfirm('Close this game? All events are saved on the server.', 'Close Game', 'Cancel')) return;
+    clearSessionState();
+    location.reload();
+  });
+
   function setOfflineOverlay(visible) {
     document.getElementById('offlineOverlay').style.display = visible ? 'flex' : 'none';
   }
 
   function checkConnectionStatus() {
     if (!navigator.onLine) { setOfflineOverlay(true); return; }
-    fetch('teams.json?nocache=' + Date.now())
-      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-      .then(() => setOfflineOverlay(false))
+    fetch('ping.php?t=' + Date.now())
+      .then(r => { if (!r.ok) throw new Error(); setOfflineOverlay(false); })
       .catch(() => setOfflineOverlay(true));
   }
 

@@ -96,7 +96,7 @@
       <div id="gameSection" style="display:none;">
 
         <div class="section-header">
-          <h2>Select Player</h2>
+          <h2>Players</h2>
           <div class="sort-container">
             <span class="sort-label">Sort:</span>
             <select id="playerSortSelect">
@@ -109,7 +109,7 @@
 
         <div id="playerButtons" class="player-grid"></div>
 
-        <h2>Select Event</h2>
+        <h2>Events</h2>
         <div id="eventButtons" class="event-grid"></div>
 
         <h2>Other Events</h2>
@@ -122,6 +122,10 @@
 
         <button id="scorecardButton" class="scorecard-bottom-btn">Scorecard</button>
         <input id="scorecardLink" class="scorecard-link-box" type="text" readonly placeholder="Scorecard link will appear here">
+        <div class="setup-buttons" style="margin-bottom:10px;">
+          <button id="closeGameButton" style="background:#555;">Close Game</button>
+          <button onclick="window.open('admin.php','_blank')" style="background:#2c3e50;">Admin</button>
+        </div>
 
       </div>
 
@@ -129,7 +133,7 @@
 
     <div id="starterModal" class="modal">
       <div class="modal-content">
-        <h2>Select Starters (11 players)</h2>
+        <h2>Select Starters <span id="starterCount" style="color:#aaa;font-weight:400;">(0 of 11)</span></h2>
         <div id="starterList"></div>
         <div class="modal-buttons">
           <button id="confirmStartersButton">Confirm Starters</button>

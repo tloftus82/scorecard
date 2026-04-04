@@ -873,17 +873,14 @@ async function saveOtherEvents() {
 
 // ══ GAME FILES ══════════════════════════════════════════════════
 function parseGameFilename(f) {
-  // Format: 2026-03-26_121141_SiouxCityNorthGirls2026_SiouxCenter.json
   try {
     const parts = f.replace('.json','').split('_');
-    const date = new Date(parts[0]);
+    const date = new Date(parts[0] + 'T12:00:00');
     const dateStr = date.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-    const teamRaw = parts[2] || '';
-    const oppRaw  = parts.slice(3).join(' ') || '';
-    // Insert spaces before capitals
-    const team = teamRaw.replace(/([A-Z])/g, ' $1').trim();
-    const opp  = oppRaw.replace(/([A-Z])/g, ' $1').trim();
-    return { dateStr, team, opp };
+    const teamRaw = (parts[2] || '').replace(/\d{4}$/, '');
+    const oppRaw  = parts.slice(3).join(' ');
+    const fmt = s => s.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2').trim();
+    return { dateStr, team: fmt(teamRaw), opp: fmt(oppRaw) };
   } catch(e) { return { dateStr: f, team: '', opp: '' }; }
 }
 

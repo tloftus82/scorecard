@@ -26,8 +26,18 @@ $date = date('F j, Y', strtotime(str_replace('_', '-', substr($filename, 0, 10))
 // Load roster from the game JSON (assuming it's included)
 $roster = isset($gameData['roster']) ? $gameData['roster'] : [];
 usort($roster, function($a, $b) {
-    return $a['number'] - $b['number']; // Sort in ascending order of number
+    return (int)$a['number'] - (int)$b['number'];
 });
+
+// Build score lookup from events/other_events flags
+$allEventDefs = array_merge(
+    json_decode(file_get_contents('events.json'), true) ?? [],
+    json_decode(file_get_contents('other_events.json'), true) ?? []
+);
+$scoringMap = [];
+foreach ($allEventDefs as $ed) {
+    $scoringMap[$ed['name']] = ['us' => $ed['us'] ?? 0, 'them' => $ed['them'] ?? 0];
+}
 $players = [];
 $goalies = [];
 $cornerKicksUs = 0;  // Total North corner kicks (with player names)
@@ -60,75 +70,74 @@ $themScore = 0;
 
 // Process events to calculate stats and track player participation
 foreach ($events as $event) {
-    $playerName = $event['player'];
-    
+    $playerName = $event['player'] ?? '';
+    $eventName  = $event['event'] ?? '';
+
+    // Score via flags (best practice — no hardcoded event names for scoring)
+    if (isset($scoringMap[$eventName])) {
+        $usScore   += $scoringMap[$eventName]['us'];
+        $themScore += $scoringMap[$eventName]['them'];
+    }
+
     // Mark player as having played
-    if (isset($players[$playerName])) {
+    if ($playerName && isset($players[$playerName])) {
         $players[$playerName]['Played'] = true;
     }
 
     // Check if the player is a starter
-    if ($event['event'] === 'Entered Game (Starter)' && isset($players[$playerName])) {
+    if ($eventName === 'Entered Game (Starter)' && $playerName && isset($players[$playerName])) {
         $players[$playerName]['Starter'] = true;
     }
 
-    // Update stats based on the event and update score
-    switch ($event['event']) {
-        case 'Goal':
-            $players[$playerName]['Goals']++;
-            $players[$playerName]['Shots']++;
-            $players[$playerName]['ShotsOnGoal']++;
-            $usScore++; // Add goal to our score
-            break;
-        case 'PK (Scored)':
-            $players[$playerName]['PKMade']++;
-            $players[$playerName]['PKAttempted']++;
-            $usScore++; // Add PK (Scored) to our score
-            break;
-        case 'Assist':
-            $players[$playerName]['Assists']++;
-            break;
-        case 'Shot':
-            $players[$playerName]['Shots']++;
-            break;
-        case 'Shot On Goal':
-            $players[$playerName]['Shots']++;
-            $players[$playerName]['ShotsOnGoal']++;
-            break;
-        case 'PK (Missed)':
-            $players[$playerName]['PKAttempted']++;
-            break;
-        case 'Yellow Card':
-            $players[$playerName]['YellowCards']++;
-            break;
-        case 'Save':
-            $players[$playerName]['Saves']++;
-            break;
-        case 'Goal Allowed':
-            $themScore++;
-            $players[$playerName]['GoalsAllowed']++;
-            break;
-        case 'PK Against (Scored)':
-            $themScore++;
-            $players[$playerName]['GoalsAllowed']++;
-            $players[$playerName]['PKAgainst']++;
-            break;
-        case 'PK Against (Missed)':
-            $players[$playerName]['PKAgainst']++;
-            break;
-        case 'Corner Kick':
-            $cornerKicksUs++; // North corner kick (player associated)
-            break;
-        case 'Corner Kick (Them)':
-            $cornerKicksThem++; // Opponent corner kick (no player associated)
-            break;
-        case 'Own Goal (Us)':
-          $themScore++; // Add goal to opponent's score
-          break;
-        case 'Own Goal (Them)':
-          $usScore++; // Add goal to opponent's score
-          break;
+    // Player-specific stat tracking (requires known event names)
+    if ($playerName && isset($players[$playerName])) {
+        switch ($eventName) {
+            case 'Goal':
+                $players[$playerName]['Goals']++;
+                $players[$playerName]['Shots']++;
+                $players[$playerName]['ShotsOnGoal']++;
+                break;
+            case 'PK (Scored)':
+                $players[$playerName]['PKMade']++;
+                $players[$playerName]['PKAttempted']++;
+                break;
+            case 'Assist':
+                $players[$playerName]['Assists']++;
+                break;
+            case 'Shot':
+                $players[$playerName]['Shots']++;
+                break;
+            case 'Shot On Goal':
+                $players[$playerName]['Shots']++;
+                $players[$playerName]['ShotsOnGoal']++;
+                break;
+            case 'PK (Missed)':
+                $players[$playerName]['PKAttempted']++;
+                break;
+            case 'Yellow Card':
+                $players[$playerName]['YellowCards']++;
+                break;
+            case 'Save':
+                $players[$playerName]['Saves']++;
+                break;
+            case 'Goal Allowed':
+                $players[$playerName]['GoalsAllowed']++;
+                break;
+            case 'PK Against (Scored)':
+                $players[$playerName]['GoalsAllowed']++;
+                $players[$playerName]['PKAgainst']++;
+                break;
+            case 'PK Against (Missed)':
+                $players[$playerName]['PKAgainst']++;
+                break;
+            case 'Corner Kick':
+                $cornerKicksUs++;
+                break;
+        }
     }
+
+    // Playerless events
+    if ($eventName === 'Corner Kick (Them)') $cornerKicksThem++;
 }
 
 // Set goalie status based on events

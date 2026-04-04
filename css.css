@@ -472,7 +472,7 @@ li button:hover {
 /* ── Notification ── */
 .notification {
   position: fixed;
-  top: 24px;
+  top: 112px;
   left: 50%;
   transform: translateX(-50%);
   background-color: #2ecc71;
