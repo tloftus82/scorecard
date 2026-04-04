@@ -23,15 +23,24 @@ body, html {
   background-color: #121212;
   z-index: 999;
   display: flex;
-  flex-direction: row;
-  align-items: stretch;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
   border-bottom: 2px solid #3498db;
   box-shadow: 0 2px 8px rgba(0,0,0,0.6);
-  padding: 6px 10px;
-  gap: 10px;
+  padding: 4px 10px 6px;
+  gap: 2px;
   backface-visibility: hidden;
   transform: translateZ(0);
+}
+
+#matchupBar {
+  font-size: 11px;
+  color: #aaa;
+  text-align: center;
+  line-height: 1.2;
+  letter-spacing: 0.2px;
+  width: 100%;
 }
 
 #scoreboard.scoreboard-flash {

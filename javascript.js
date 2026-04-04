@@ -153,6 +153,22 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('gameSection').style.display = 'block';
   }
 
+  function showMatchupBar() {
+    const teamParts = selectedTeamName.match(/^(.*?)\s*\((\d{4})\)$/);
+    const teamLabel = teamParts ? `${teamParts[1]} (${teamParts[2]})` : selectedTeamName;
+    const opponent  = opponentInput.value.trim();
+    const bar = document.getElementById('matchupBar');
+    bar.textContent = opponent ? `${teamLabel} vs ${opponent}` : teamLabel;
+    bar.style.display = 'block';
+    // Hide the setup inputs — matchup bar replaces them
+    teamSelect.style.display = 'none';
+    document.querySelector('.vs-row').style.display = 'none';
+    // Adjust container top padding to clear the now-taller scoreboard
+    const scoreboard = document.getElementById('scoreboard');
+    document.querySelector('.container').style.paddingTop =
+      (scoreboard.offsetHeight + 6) + 'px';
+  }
+
   function updateScorecardLink() {
     const url = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/') + 'scorecard.php?file=' + encodeURIComponent(filename + '.json');
     document.getElementById('scorecardLink').value = url;
@@ -162,6 +178,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     saveGameButton.style.display = 'none';
     const setupAdmin = document.getElementById('setupAdminButton');
     if (setupAdmin) setupAdmin.style.display = 'none';
+    showMatchupBar();
   }
 
   function saveGame(silent = false) {
