@@ -181,8 +181,12 @@
       <div class="modal-content">
         <h2>Set Clock</h2>
         <div class="modal-field">
-          <label>Time (mm:ss)</label>
-          <input type="text" id="clockTimeInput" class="modal-text-input" placeholder="40:00">
+          <label>Time</label>
+          <div class="clock-time-inputs">
+            <input type="number" id="clockMinInput" class="modal-text-input clock-time-part" min="0" max="99" placeholder="40" inputmode="numeric">
+            <span class="clock-time-sep">:</span>
+            <input type="number" id="clockSecInput" class="modal-text-input clock-time-part" min="0" max="59" placeholder="00" inputmode="numeric">
+          </div>
         </div>
         <div class="modal-field">
           <label>Half</label>

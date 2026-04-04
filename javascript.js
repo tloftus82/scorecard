@@ -776,23 +776,23 @@ document.addEventListener('DOMContentLoaded', async function() {
   function setClock() {
     const mins = Math.floor(clockSeconds / 60);
     const secs = clockSeconds % 60;
-    document.getElementById('clockTimeInput').value =
-      `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    document.getElementById('clockMinInput').value = mins;
+    document.getElementById('clockSecInput').value = String(secs).padStart(2, '0');
     document.getElementById('clockHalfSelect').value = currentHalf;
     document.getElementById('setClockModal').style.display = 'flex';
-    setTimeout(() => document.getElementById('clockTimeInput').focus(), 50);
+    setTimeout(() => document.getElementById('clockMinInput').focus(), 50);
   }
 
   document.getElementById('clockModalOk').addEventListener('click', async function() {
-    const timeInput = document.getElementById('clockTimeInput').value.trim();
     const halfInput = document.getElementById('clockHalfSelect').value;
+    const minutes = parseInt(document.getElementById('clockMinInput').value) || 0;
+    const seconds = parseInt(document.getElementById('clockSecInput').value) || 0;
 
-    if (!/^([0-5]?[0-9]):([0-5]?[0-9])$/.test(timeInput)) {
-      await showAlert("Invalid time format. Use mm:ss.");
+    if (seconds > 59) {
+      await showAlert("Seconds must be 0–59.");
       return;
     }
 
-    const [minutes, seconds] = timeInput.split(':').map(Number);
     clockSeconds = (minutes * 60) + seconds;
     currentHalf = parseInt(halfInput);
     document.getElementById('halfIndicator').textContent = currentHalf === 1 ? '1st Half' : '2nd Half';

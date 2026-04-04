@@ -530,6 +530,29 @@ li button:hover {
   display: none;
 }
 
+.clock-time-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.clock-time-inputs .clock-time-part {
+  flex: 1;
+  text-align: center;
+}
+
+.clock-time-sep {
+  font-size: 24px;
+  font-weight: bold;
+  color: #e0e0e0;
+  line-height: 1;
+}
+
+/* hide number input spinners */
+.clock-time-part::-webkit-inner-spin-button,
+.clock-time-part::-webkit-outer-spin-button { -webkit-appearance: none; }
+.clock-time-part { -moz-appearance: textfield; }
+
 .modal-text-input {
   width: 100%;
   height: 48px;
