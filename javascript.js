@@ -323,14 +323,15 @@ document.addEventListener('DOMContentLoaded', async function() {
         const warning = clockWasRunning ? '' : '<br><small>⚠️ Clock was not running</small>';
         const assistLine = assistPlayer ? `<br><small><i>Assist: ${assistPlayer}</i></small>` : '';
         showNotification(`<small><i>${player}</i></small><br><b>${eventName}</b>${assistLine}${warning}`, clockWasRunning ? 'success' : 'warning');
+
+        // Deselect before re-rendering — renderPlayers() destroys the old button nodes
+        if (selectedEventButton) selectedEventButton.classList.remove('selected');
+        selectedEventButton = null;
+        selectedPlayerButton = null;
+
         renderEvents();
         renderPlayers();
         if (saved) saveGame(true);
-
-        selectedPlayerButton.classList.remove('selected');
-        selectedEventButton.classList.remove('selected');
-        selectedPlayerButton = null;
-        selectedEventButton = null;
       });
 
       eventButtonsContainer.appendChild(button);
