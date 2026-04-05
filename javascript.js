@@ -156,6 +156,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('gameSection').style.display = 'block';
     const dock = document.getElementById('voiceDock');
     dock.style.display = 'block';
+    dock.classList.add('collapsed');   // body hidden until user taps Show
     document.body.classList.add('voice-dock-open');
   }
 
@@ -679,7 +680,6 @@ function updateScoreboard() {
     renderEvents();
     saveGame();
     saveSessionState();
-    requestMicPermission();
   });
 
   loadGameButton.addEventListener('click', async function () {
@@ -744,7 +744,6 @@ function updateScoreboard() {
         renderEventButtons();
         renderOtherEventButtons();
         saveSessionState();
-        requestMicPermission();
       });
   }
 
@@ -818,7 +817,6 @@ function updateScoreboard() {
     updateScorecardLink();
     renderEvents();
     updateScoreboard();
-    requestMicPermission();
 
     // Restore half indicator
     currentHalf = state.currentHalf || 1;
@@ -1456,6 +1454,7 @@ function updateScoreboard() {
     toggle.addEventListener('click', () => {
       const collapsed = dock.classList.toggle('collapsed');
       toggle.textContent = collapsed ? '▲ Show' : 'Hide ▼';
+      if (!collapsed) requestMicPermission(); // ask on first expand
     });
   }
 
