@@ -1174,7 +1174,9 @@ function updateScoreboard() {
   function voiceMatchEvent(text) {
     for (const alias of VOICE_EVENT_ALIASES) {
       for (const key of alias.keys) {
-        if (text.includes(key)) return alias;
+        // Use word boundaries so "red" doesn't fire inside "scored", etc.
+        const re = new RegExp('\\b' + key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
+        if (re.test(text)) return alias;
       }
     }
     return null;
