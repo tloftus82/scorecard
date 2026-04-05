@@ -1098,6 +1098,32 @@ function updateScoreboard() {
     ]},
   ];
 
+  // Levenshtein distance between two strings
+  function voiceLevenshtein(a, b) {
+    const m = a.length, n = b.length;
+    const row = Array.from({length: n + 1}, (_, i) => i);
+    for (let i = 1; i <= m; i++) {
+      let prev = i;
+      for (let j = 1; j <= n; j++) {
+        const val = a[i-1] === b[j-1] ? row[j-1] : 1 + Math.min(prev, row[j], row[j-1]);
+        row[j-1] = prev;
+        prev = val;
+      }
+      row[n] = prev;
+    }
+    return row[n];
+  }
+
+  // Phonetic fingerprint — collapses vowels and doubles so sound-alikes match:
+  // "Ally" / "Alley" / "Allie" / "Ali" all → "vlv"
+  function voicePhonetic(s) {
+    return s.toLowerCase()
+      .replace(/ph/g, 'f')
+      .replace(/ck/g, 'k')
+      .replace(/[aeiouwy]+/g, 'v') // all vowel-like sounds → single token
+      .replace(/(.)\1+/g, '$1');    // collapse repeated chars
+  }
+
   function voiceNormalize(raw) {
     return raw
       .toLowerCase()
@@ -1167,12 +1193,34 @@ function updateScoreboard() {
     });
     if (lastHits.length === 1) return fmt(lastHits[0]);
 
-    // Prefix match on first name — handles transcription near-misses
-    // e.g. "Ali" → "Allie", "Oly" → "Olympia", "Morg" → "Morgan"
-    const words = text.split(' ').filter(w => w.length >= 3);
-    for (const word of words) {
-      const prefixHits = roster.filter(p => p.first_name.toLowerCase().startsWith(word));
-      if (prefixHits.length === 1) return fmt(prefixHits[0]);
+    // Phonetic first name match — "Ally"/"Alley"/"Ali"/"Alie" all match "Allie"
+    const textWords = text.split(' ').filter(w => w.length >= 3);
+    for (const word of textWords) {
+      const phonoHits = roster.filter(p =>
+        voicePhonetic(word) === voicePhonetic(p.first_name)
+      );
+      if (phonoHits.length === 1) return fmt(phonoHits[0]);
+      if (phonoHits.length > 1) {
+        // Tiebreak with Levenshtein
+        phonoHits.sort((a, b) =>
+          voiceLevenshtein(word, a.first_name.toLowerCase()) -
+          voiceLevenshtein(word, b.first_name.toLowerCase())
+        );
+        if (voiceLevenshtein(word, phonoHits[0].first_name.toLowerCase()) <
+            voiceLevenshtein(word, phonoHits[1].first_name.toLowerCase()))
+          return fmt(phonoHits[0]);
+      }
+    }
+
+    // Levenshtein fuzzy match — catches remaining near-misses
+    for (const word of textWords) {
+      const scored = roster.map(p => ({
+        p, d: voiceLevenshtein(word, p.first_name.toLowerCase())
+      }));
+      const threshold = Math.max(1, Math.round(Math.max(...scored.map(s => s.p.first_name.length), word.length) * 0.3));
+      const hits = scored.filter(s => s.d <= threshold).sort((a, b) => a.d - b.d);
+      if (hits.length === 1) return fmt(hits[0].p);
+      if (hits.length > 1 && hits[0].d < hits[1].d) return fmt(hits[0].p);
     }
 
     // Lone number word as last resort ("three goal" → player #3)
