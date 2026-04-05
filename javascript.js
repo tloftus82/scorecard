@@ -1001,26 +1001,113 @@ function updateScoreboard() {
     'twenty four':24,'twenty-four':24,'ninety nine':99,'ninety-nine':99
   };
 
-  // More-specific aliases must come before less-specific ones
+  // More-specific aliases must come before less-specific ones.
+  // other:true = no player needed (maps to otherEvents)
   const VOICE_EVENT_ALIASES = [
-    { name: 'Goal Allowed',          other: false, keys: ['goal allowed','they scored','conceded','goal against'] },
-    { name: 'PK Against (Missed)',   other: false, keys: ['pk against missed','pk against miss','penalty against miss'] },
-    { name: 'PK Against (Scored)',   other: false, keys: ['pk against scored','pk against','penalty against scored','penalty against'] },
-    { name: 'PK (Missed)',           other: false, keys: ['pk missed','pk miss','penalty missed','penalty kick missed'] },
-    { name: 'PK (Scored)',           other: false, keys: ['pk scored','pk score','penalty scored','penalty kick scored','pk'] },
-    { name: 'Shot On Goal',          other: false, keys: ['shot on goal','shot on','on goal'] },
-    { name: 'Yellow Card',           other: false, keys: ['yellow card','yellow','caution','booking'] },
-    { name: 'Red Card',              other: false, keys: ['red card','red','sent off','ejected'] },
-    { name: 'Corner Kick (Them)',    other: true,  keys: ['corner kick them','their corner','corner them'] },
-    { name: 'Own Goal (Us)',         other: true,  keys: ['own goal us','own goal on us','our own goal'] },
-    { name: 'Own Goal (Them)',       other: true,  keys: ['own goal them','own goal by them','their own goal'] },
-    { name: 'Corner Kick',          other: false, keys: ['corner kick','corner'] },
-    { name: 'Entered Game (Starter)',other: false, keys: ['entered starter','entered as starter','entered starting'] },
-    { name: 'Entered Game (Sub)',    other: false, keys: ['entered sub','entered as sub','substitution','subbed in','sub in','came in'] },
-    { name: 'Save',                  other: false, keys: ['save','saved'] },
-    { name: 'Shot',                  other: false, keys: ['shot wide','shot miss','wide shot','missed shot','shot'] },
-    { name: 'Goal',                  other: false, keys: ['goal','scored','scores'] },
+    // ── Goal Allowed (before "goal") ───────────────────────
+    { name: 'Goal Allowed', other: false, keys: [
+      'goal allowed','they scored','they got one','they got a goal','conceded',
+      'gave up a goal','gave up goal','goal against','allowed a goal','let one in',
+      'let it in','they equalized','they went ahead','opponents scored',
+      'other team scored','they put it in','they found the net'
+    ]},
+    // ── PK Against (before plain "pk" / "penalty") ─────────
+    { name: 'PK Against (Missed)', other: false, keys: [
+      'pk against missed','pk against miss','penalty against missed',
+      'penalty against miss','they missed the penalty','they missed a penalty',
+      'penalty against us missed','saved the penalty kick','saved the pk'
+    ]},
+    { name: 'PK Against (Scored)', other: false, keys: [
+      'pk against scored','pk against','penalty against scored',
+      'penalty against','they scored a penalty','they scored on the penalty',
+      'penalty against us','gave up a penalty','gave up penalty'
+    ]},
+    // ── PK for us ──────────────────────────────────────────
+    { name: 'PK (Missed)', other: false, keys: [
+      'pk missed','pk miss','penalty missed','penalty miss',
+      'missed penalty','missed the penalty','missed pk','missed the pk',
+      'penalty kick missed','penalty kick miss'
+    ]},
+    { name: 'PK (Scored)', other: false, keys: [
+      'pk scored','penalty scored','penalty kick scored','scored a penalty',
+      'scored on the penalty','scored the penalty kick','pk','penalty kick','penalty'
+    ]},
+    // ── Shot On Goal (before plain "shot" / "goal") ────────
+    { name: 'Shot On Goal', other: false, keys: [
+      'shot on goal','shot on target','on goal','on target',
+      'shot that was saved','shot saved by','forced a save'
+    ]},
+    // ── Cards ──────────────────────────────────────────────
+    { name: 'Yellow Card', other: false, keys: [
+      'yellow card','yellow','caution','cautioned','booking','booked',
+      'got a yellow','received a yellow','shown a yellow'
+    ]},
+    { name: 'Red Card', other: false, keys: [
+      'red card','red','sent off','ejected','dismissed',
+      'straight red','second yellow','got a red','shown a red'
+    ]},
+    // ── Corner Kicks ───────────────────────────────────────
+    { name: 'Corner Kick (Them)', other: true, keys: [
+      'corner kick them','corner kick their','corner for them',
+      'their corner kick','their corner','they got a corner',
+      'corner against us','corner against','corner them','corner kick against'
+    ]},
+    { name: 'Corner Kick', other: false, keys: [
+      'corner kick','corner kick us','corner for us','our corner',
+      'we got a corner','corner kick for us','corner'
+    ]},
+    // ── Own Goals ──────────────────────────────────────────
+    { name: 'Own Goal (Us)', other: true, keys: [
+      'own goal us','own goal on us','our own goal','we scored on ourselves',
+      'scored on our own goal','own goal by us','own goal against us'
+    ]},
+    { name: 'Own Goal (Them)', other: true, keys: [
+      'own goal them','own goal by them','their own goal',
+      'they scored on themselves','they own goaled','own goal for us'
+    ]},
+    // ── Substitutions ──────────────────────────────────────
+    { name: 'Entered Game (Starter)', other: false, keys: [
+      'entered starter','entered as starter','entered starting','in the starting lineup',
+      'starting lineup','started the game','as a starter'
+    ]},
+    { name: 'Entered Game (Sub)', other: false, keys: [
+      'entered sub','entered as sub','came on as sub','came on as a sub',
+      'substitution','subbed in','subbed on','sub in','came in','came on',
+      'came off the bench','entered the game','entered game','entered as a substitute',
+      'as a substitute','sub'
+    ]},
+    // ── Save ───────────────────────────────────────────────
+    { name: 'Save', other: false, keys: [
+      'save','saved','great save','made a save','keeper save','keeper saves',
+      'blocked','stopped it','kept it out','made the save',
+      'diving save','punched it out','pushed it out'
+    ]},
+    // ── Shot (off target) ──────────────────────────────────
+    { name: 'Shot', other: false, keys: [
+      'shot wide','shot off','wide shot','missed shot','shot off target',
+      'off target','wide of goal','shot over','over the bar','hit the post',
+      'hit the bar','shot'
+    ]},
+    // ── Goal (for us) ──────────────────────────────────────
+    { name: 'Goal', other: false, keys: [
+      'goal','scored','scores','she scored','he scored','score',
+      'put it away','put it in','back of the net','found the net',
+      'slotted it in','headed it in','she put it in','he put it in',
+      'tapped it in','buried it','finished it','she finished','he finished',
+      'she scores','he scores'
+    ]},
   ];
+
+  function voiceNormalize(raw) {
+    return raw
+      .toLowerCase()
+      .replace(/[^\w\s]/g, ' ')
+      // Normalize number prefixes so player matching is consistent
+      .replace(/\b(?:jersey|no\.?|number)\s*#?\s*(\d+)\b/g, 'number $1')
+      .replace(/#(\d+)/g, 'number $1')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
 
   function voiceMatchEvent(text) {
     for (const alias of VOICE_EVENT_ALIASES) {
@@ -1033,41 +1120,58 @@ function updateScoreboard() {
 
   function voiceMatchPlayer(text, roster) {
     if (!roster || !roster.length) return null;
+    const fmt = p => `${p.first_name} ${p.last_name}`;
 
-    // "number 7" or "#7"
-    const numDigit = text.match(/(?:number|#)\s*(\d+)/);
+    // "number 7" (already normalized)
+    const numDigit = text.match(/\bnumber\s+(\d+)\b/);
     if (numDigit) {
       const p = roster.find(r => r.number === parseInt(numDigit[1]));
-      if (p) return `${p.first_name} ${p.last_name}`;
+      if (p) return fmt(p);
     }
 
-    // "number three" etc.
+    // "number three" / "number twenty one"
     for (const [word, num] of Object.entries(VOICE_NUMBER_WORDS)) {
       if (text.includes('number ' + word)) {
         const p = roster.find(r => r.number === num);
-        if (p) return `${p.first_name} ${p.last_name}`;
+        if (p) return fmt(p);
       }
     }
 
-    // Full name ("allie loftus")
+    // Full name match (highest confidence)
     for (const p of roster) {
-      const full = (p.first_name + ' ' + p.last_name).toLowerCase();
-      if (text.includes(full)) return `${p.first_name} ${p.last_name}`;
+      if (text.includes((p.first_name + ' ' + p.last_name).toLowerCase())) return fmt(p);
+    }
+
+    // First + first word of last name (e.g. "allie loft" for "Allie Loftus")
+    for (const p of roster) {
+      const partial = (p.first_name + ' ' + p.last_name.split(' ')[0]).toLowerCase();
+      if (partial.length > 3 && text.includes(partial)) return fmt(p);
     }
 
     // Unique first name
-    const firstHits = roster.filter(p => text.includes(p.first_name.toLowerCase()));
-    if (firstHits.length === 1) return `${firstHits[0].first_name} ${firstHits[0].last_name}`;
+    const firstHits = roster.filter(p => {
+      const fn = p.first_name.toLowerCase();
+      return fn.length > 2 && text.includes(fn);
+    });
+    if (firstHits.length === 1) return fmt(firstHits[0]);
+    // Multiple first-name hits — take the one whose last name also appears
+    if (firstHits.length > 1) {
+      const withLast = firstHits.find(p => text.includes(p.last_name.split(' ')[0].toLowerCase()));
+      if (withLast) return fmt(withLast);
+    }
 
-    // Unique first word of last name
-    const lastHits = roster.filter(p => text.includes(p.last_name.split(' ')[0].toLowerCase()));
-    if (lastHits.length === 1) return `${lastHits[0].first_name} ${lastHits[0].last_name}`;
+    // Unique first word of last name (length > 3 to avoid noise)
+    const lastHits = roster.filter(p => {
+      const lw = p.last_name.split(' ')[0].toLowerCase();
+      return lw.length > 3 && text.includes(lw);
+    });
+    if (lastHits.length === 1) return fmt(lastHits[0]);
 
-    // Lone number word ("three goal" → player #3)
+    // Lone number word as last resort ("three goal" → player #3)
     for (const [word, num] of Object.entries(VOICE_NUMBER_WORDS)) {
       if (new RegExp(`\\b${word}\\b`).test(text)) {
         const p = roster.find(r => r.number === num);
-        if (p) return `${p.first_name} ${p.last_name}`;
+        if (p) return fmt(p);
       }
     }
 
@@ -1075,11 +1179,11 @@ function updateScoreboard() {
   }
 
   function parseVoiceTranscript(raw) {
-    let text = raw.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+    let text = voiceNormalize(raw);
 
-    // Extract "assisted by X" / "assist X"
+    // Extract assist portion — many natural phrasings
     let assistPlayer = null;
-    const assistRe = /\b(?:assisted by|assist(?:ed)?(?:\s+by)?|with assist(?:\s+from)?)\s+(.+)$/;
+    const assistRe = /\b(?:assisted by|assist(?:ed)?(?:\s+by)?|with assist(?:\s+(?:from|by))?|and assist(?:ed)?(?:\s+by)?)\s+(.+)$/;
     const assistMatch = text.match(assistRe);
     if (assistMatch) {
       const assistText = assistMatch[1].trim();
@@ -1093,7 +1197,7 @@ function updateScoreboard() {
     let playerName = null;
     if (!matchedEvent.other) {
       playerName = voiceMatchPlayer(text, currentRoster);
-      if (!playerName) return { raw, error: 'No player matched' };
+      if (!playerName) return { raw, error: `Event matched (${matchedEvent.name}) but no player found` };
     }
 
     return { eventName: matchedEvent.name, isOther: matchedEvent.other, playerName, assistPlayer, raw };
