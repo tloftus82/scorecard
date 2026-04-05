@@ -1367,6 +1367,7 @@ function updateScoreboard() {
 
   async function logVoiceEvent(parsed) {
     const { eventName, playerName, assistPlayer } = parsed;
+    const clockWasRunning = clockInterval !== null;
     const now = new Date().toISOString();
     const timeRemaining = { minutes: Math.floor(clockSeconds / 60), seconds: clockSeconds % 60 };
 
@@ -1378,9 +1379,13 @@ function updateScoreboard() {
       events.push({ player: assistPlayer, event: 'Assist', time: now, half: currentHalf, timeRemaining });
     }
 
+    // Prompt to stop clock for goals etc., same as button-based logging
+    if (stopClockLookup.has(eventName)) await promptToStopClock();
+
     const playerLine = playerName ? `<small><i>${playerName}</i></small><br>` : '';
     const assistLine = assistPlayer ? `<br><small><i>Assist: ${assistPlayer}</i></small>` : '';
-    showNotification(`${playerLine}<b>${eventName}</b>${assistLine}`, 'success');
+    const warning    = clockWasRunning ? '' : '<br><small>⚠️ Clock was not running</small>';
+    showNotification(`${playerLine}<b>${eventName}</b>${assistLine}${warning}`, clockWasRunning ? 'success' : 'warning');
 
     if (celebrationsEnabled && celebrationLookup[eventName]) {
       launchFallingItems(celebrationLookup[eventName]);
