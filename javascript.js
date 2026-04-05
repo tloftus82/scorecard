@@ -1088,12 +1088,12 @@ function updateScoreboard() {
     }
 
     const matchedEvent = voiceMatchEvent(text);
-    if (!matchedEvent) return { error: `Couldn't match an event in: "${raw}"` };
+    if (!matchedEvent) return { raw, error: 'No event matched' };
 
     let playerName = null;
     if (!matchedEvent.other) {
       playerName = voiceMatchPlayer(text, currentRoster);
-      if (!playerName) return { error: `Couldn't identify a player in: "${raw}"` };
+      if (!playerName) return { raw, error: 'No player matched' };
     }
 
     return { eventName: matchedEvent.name, isOther: matchedEvent.other, playerName, assistPlayer, raw };
