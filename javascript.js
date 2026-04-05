@@ -154,6 +154,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   function showGameSection() {
     document.getElementById('gameSection').style.display = 'block';
+    const dock = document.getElementById('voiceDock');
+    dock.style.display = 'block';
+    document.body.classList.add('voice-dock-open');
   }
 
   function showMatchupBar() {
@@ -815,6 +818,7 @@ function updateScoreboard() {
     updateScorecardLink();
     renderEvents();
     updateScoreboard();
+    requestMicPermission();
 
     // Restore half indicator
     currentHalf = state.currentHalf || 1;
@@ -1439,6 +1443,16 @@ function updateScoreboard() {
 
   const voiceBtn    = document.getElementById('voiceBtn');
   const voiceStatus = document.getElementById('voiceStatus');
+
+  // ── Voice dock toggle (hide/show) ────────────────────────────────────────
+  {
+    const dock   = document.getElementById('voiceDock');
+    const toggle = document.getElementById('voiceDockToggle');
+    toggle.addEventListener('click', () => {
+      const collapsed = dock.classList.toggle('collapsed');
+      toggle.textContent = collapsed ? '▲ Show' : 'Hide ▼';
+    });
+  }
 
   {
     let mediaRecorder  = null;

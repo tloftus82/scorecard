@@ -101,11 +101,6 @@
 
       <div id="gameSection" style="display:none;">
 
-        <div class="voice-row">
-          <button id="voiceBtn" class="voice-btn">🎤 Hold to Speak</button>
-          <div id="voiceStatus" class="voice-status"></div>
-        </div>
-
         <div class="game-columns">
 
           <div class="game-col-players">
@@ -218,6 +213,18 @@
           <button id="clockModalOk">Set Clock</button>
           <button id="clockModalCancel" class="btn-cancel">Cancel</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Voice dock - fixed bottom bar -->
+    <div id="voiceDock" class="voice-dock" style="display:none;">
+      <div class="voice-dock-header">
+        <span class="voice-dock-label">🎤 Voice</span>
+        <button id="voiceDockToggle" class="voice-dock-toggle">Hide ▼</button>
+      </div>
+      <div class="voice-dock-body">
+        <button id="voiceBtn" class="voice-btn">Hold to Speak</button>
+        <div id="voiceStatus" class="voice-status"></div>
       </div>
     </div>
 
