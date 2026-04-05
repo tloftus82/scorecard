@@ -1167,6 +1167,14 @@ function updateScoreboard() {
     });
     if (lastHits.length === 1) return fmt(lastHits[0]);
 
+    // Prefix match on first name — handles transcription near-misses
+    // e.g. "Ali" → "Allie", "Oly" → "Olympia", "Morg" → "Morgan"
+    const words = text.split(' ').filter(w => w.length >= 3);
+    for (const word of words) {
+      const prefixHits = roster.filter(p => p.first_name.toLowerCase().startsWith(word));
+      if (prefixHits.length === 1) return fmt(prefixHits[0]);
+    }
+
     // Lone number word as last resort ("three goal" → player #3)
     for (const [word, num] of Object.entries(VOICE_NUMBER_WORDS)) {
       if (new RegExp(`\\b${word}\\b`).test(text)) {
