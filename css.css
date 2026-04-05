@@ -841,10 +841,10 @@ li button {
 
 .voice-dock-body {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 4px;
   padding: 4px 10px 14px;
-  max-height: 90px;
+  max-height: 110px;
   overflow: hidden;
   transition: max-height 0.3s ease, padding 0.3s ease;
 }
@@ -878,11 +878,11 @@ body.voice-dock-open .container {
 }
 
 .voice-status {
-  font-size: 13px;
+  font-size: 12px;
   color: #aaa;
-  min-width: 80px;
-  text-align: right;
+  text-align: center;
   white-space: nowrap;
+  min-height: 16px;
 }
 
 .voice-btn.recording {

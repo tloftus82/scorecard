@@ -223,8 +223,8 @@
         <button id="voiceDockToggle" class="voice-dock-toggle">Hide ▼</button>
       </div>
       <div class="voice-dock-body">
-        <button id="voiceBtn" class="voice-btn">Hold to Speak</button>
         <div id="voiceStatus" class="voice-status"></div>
+        <button id="voiceBtn" class="voice-btn">Hold to Speak</button>
       </div>
     </div>
 
