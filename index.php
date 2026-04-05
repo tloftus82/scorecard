@@ -217,7 +217,7 @@
     </div>
 
     <!-- Voice dock - fixed bottom bar -->
-    <div id="voiceDock" class="voice-dock collapsed" style="display:none;">
+    <div id="voiceDock" class="voice-dock collapsed">
       <div class="voice-dock-header">
         <span class="voice-dock-label">🎤 Voice</span>
         <button id="voiceDockToggle" class="voice-dock-toggle">▲ Show</button>

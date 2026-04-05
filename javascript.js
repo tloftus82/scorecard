@@ -155,8 +155,8 @@ document.addEventListener('DOMContentLoaded', async function() {
   function showGameSection() {
     document.getElementById('gameSection').style.display = 'block';
     const dock = document.getElementById('voiceDock');
-    dock.style.display = 'block';
-    dock.classList.add('collapsed');   // body hidden until user taps Show
+    dock.classList.add('dock-visible'); // display controlled by CSS (block portrait / flex landscape)
+    dock.classList.add('collapsed');    // body hidden until user taps Show
     document.body.classList.add('voice-dock-open');
   }
 
