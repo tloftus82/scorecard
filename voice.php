@@ -25,8 +25,10 @@ curl_setopt_array($ch, [
     CURLOPT_POST           => true,
     CURLOPT_HTTPHEADER     => ['xi-api-key: ' . $elevenLabsApiKey],
     CURLOPT_POSTFIELDS     => [
-        'file'     => new CURLFile($tmpFile, $mimeType, $origName),
-        'model_id' => 'scribe_v1',
+        'file'          => new CURLFile($tmpFile, $mimeType, $origName),
+        'model_id'      => 'scribe_v1',
+        'language_code' => 'en',   // force English recognition
+        'num_speakers'  => '1',    // single speaker optimisation
     ],
 ]);
 

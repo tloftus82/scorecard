@@ -1005,9 +1005,15 @@ function updateScoreboard() {
     'zero':0,'one':1,'two':2,'three':3,'four':4,'five':5,'six':6,'seven':7,
     'eight':8,'nine':9,'ten':10,'eleven':11,'twelve':12,'thirteen':13,
     'fourteen':14,'fifteen':15,'sixteen':16,'seventeen':17,'eighteen':18,
-    'nineteen':19,'twenty':20,'twenty one':21,'twenty-one':21,
-    'twenty two':22,'twenty-two':22,'twenty three':23,'twenty-three':23,
-    'twenty four':24,'twenty-four':24,'ninety nine':99,'ninety-nine':99
+    'nineteen':19,'twenty':20,
+    'twenty one':21,'twenty-one':21,'twenty two':22,'twenty-two':22,
+    'twenty three':23,'twenty-three':23,'twenty four':24,'twenty-four':24,
+    'twenty five':25,'twenty-five':25,'twenty six':26,'twenty-six':26,
+    'twenty seven':27,'twenty-seven':27,'twenty eight':28,'twenty-eight':28,
+    'twenty nine':29,'twenty-nine':29,'thirty':30,'thirty one':31,'thirty-one':31,
+    'thirty two':32,'thirty-two':32,'thirty three':33,'thirty-three':33,
+    'forty':40,'fifty':50,'sixty':60,'seventy':70,'eighty':80,'ninety':90,
+    'ninety nine':99,'ninety-nine':99
   };
 
   // More-specific aliases must come before less-specific ones.
@@ -1127,23 +1133,40 @@ function updateScoreboard() {
     return row[n];
   }
 
-  // Phonetic fingerprint — collapses vowels and doubles so sound-alikes match:
-  // "Ally" / "Alley" / "Allie" / "Ali" all → "vlv"
+  // Phonetic fingerprint — normalises consonant clusters then collapses all
+  // vowel-like sounds so sound-alikes hash identically:
+  //   Ally / Alley / Allie / Ali  →  "vlv"
+  //   Xochitl / Sochitl / Zochitl →  "svktl"  (x/z→s, ch→k)
+  //   Chloe / Kloe                →  "klv"
   function voicePhonetic(s) {
     return s.toLowerCase()
+      .replace(/tch/g, 'ch')
+      .replace(/sch/g, 'sh')
       .replace(/ph/g, 'f')
+      .replace(/gh/g, 'g')
       .replace(/ck/g, 'k')
-      .replace(/[aeiouwy]+/g, 'v') // all vowel-like sounds → single token
-      .replace(/(.)\1+/g, '$1');    // collapse repeated chars
+      .replace(/ch/g, 'k')
+      .replace(/sh/g, 's')
+      .replace(/th/g, 't')
+      .replace(/wh/g, 'w')
+      .replace(/kn/g, 'n')
+      .replace(/wr/g, 'r')
+      .replace(/[xz]/g, 's')
+      .replace(/qu/g, 'k')
+      .replace(/[aeiouyw]+/g, 'v')
+      .replace(/(.)\1+/g, '$1');
   }
 
   function voiceNormalize(raw) {
     return raw
       .toLowerCase()
       .replace(/[^\w\s]/g, ' ')
-      // Normalize number prefixes so player matching is consistent
+      // Normalize number prefixes
       .replace(/\b(?:jersey|no\.?|number)\s*#?\s*(\d+)\b/g, 'number $1')
       .replace(/#(\d+)/g, 'number $1')
+      // Strip common filler that appears around player names
+      .replace(/\b(she|he|it)\s+(got|gets|scored|scores|made|makes|saves|saved|blocked|had|has)\b/g, '')
+      .replace(/\bshe s\b|\bhe s\b/g, '')
       .replace(/\s+/g, ' ')
       .trim();
   }
@@ -1159,16 +1182,22 @@ function updateScoreboard() {
 
   function voiceMatchPlayer(text, roster) {
     if (!roster || !roster.length) return null;
-    const fmt = p => `${p.first_name} ${p.last_name}`;
+    const fmt    = p  => `${p.first_name} ${p.last_name}`;
+    const unique = arr => arr.length === 1 ? arr[0] : null;
+    const best   = (arr, key) => {
+      if (!arr.length) return null;
+      arr.sort((a, b) => a._d - b._d);
+      return (arr.length === 1 || arr[0]._d < arr[1]._d) ? arr[0] : null;
+    };
 
-    // "number 7" (already normalized)
+    // ── 1. Number: "number 7" (already normalised) ──────────────
     const numDigit = text.match(/\bnumber\s+(\d+)\b/);
     if (numDigit) {
       const p = roster.find(r => r.number === parseInt(numDigit[1]));
       if (p) return fmt(p);
     }
 
-    // "number three" / "number twenty one"
+    // ── 2. Number word: "number three" / "number twenty one" ────
     for (const [word, num] of Object.entries(VOICE_NUMBER_WORDS)) {
       if (text.includes('number ' + word)) {
         const p = roster.find(r => r.number === num);
@@ -1176,74 +1205,105 @@ function updateScoreboard() {
       }
     }
 
-    // Full name match (highest confidence)
+    // ── 3. Full name exact ───────────────────────────────────────
     for (const p of roster) {
       if (text.includes((p.first_name + ' ' + p.last_name).toLowerCase())) return fmt(p);
     }
 
-    // First + first word of last name (e.g. "allie loft" for "Allie Loftus")
+    // ── 4. First name + first word of last name ──────────────────
     for (const p of roster) {
       const partial = (p.first_name + ' ' + p.last_name.split(' ')[0]).toLowerCase();
-      if (partial.length > 3 && text.includes(partial)) return fmt(p);
+      if (partial.length > 4 && text.includes(partial)) return fmt(p);
     }
 
-    // Unique first name
-    const firstHits = roster.filter(p => {
+    // ── 5. Unique exact first name ───────────────────────────────
+    const exactFirst = roster.filter(p => {
       const fn = p.first_name.toLowerCase();
       return fn.length > 2 && text.includes(fn);
     });
-    if (firstHits.length === 1) return fmt(firstHits[0]);
-    // Multiple first-name hits — take the one whose last name also appears
-    if (firstHits.length > 1) {
-      const withLast = firstHits.find(p => text.includes(p.last_name.split(' ')[0].toLowerCase()));
-      if (withLast) return fmt(withLast);
+    if (exactFirst.length === 1) return fmt(exactFirst[0]);
+    if (exactFirst.length > 1) {
+      // tiebreak: whose last name word also appears?
+      const tb = exactFirst.find(p =>
+        p.last_name.toLowerCase().split(' ').some(w => w.length > 3 && text.includes(w))
+      );
+      if (tb) return fmt(tb);
     }
 
-    // Unique first word of last name (length > 3 to avoid noise)
-    const lastHits = roster.filter(p => {
-      const lw = p.last_name.split(' ')[0].toLowerCase();
-      return lw.length > 3 && text.includes(lw);
-    });
-    if (lastHits.length === 1) return fmt(lastHits[0]);
+    // ── 6. Any word of last name (handles compound surnames) ─────
+    const exactLast = roster.filter(p =>
+      p.last_name.toLowerCase().split(' ').some(w => w.length > 3 && text.includes(w))
+    );
+    if (exactLast.length === 1) return fmt(exactLast[0]);
+    if (exactLast.length > 1) {
+      const tb = exactLast.find(p => text.includes(p.first_name.toLowerCase()));
+      if (tb) return fmt(tb);
+    }
 
     const textWords = text.split(' ').filter(w => w.length >= 3);
 
-    // Prefix match — "Yari" → "Yaritxel", "Oly" → "Olympia"
+    // ── 7. Prefix on first name ──────────────────────────────────
     for (const word of textWords) {
-      const prefixHits = roster.filter(p => p.first_name.toLowerCase().startsWith(word));
-      if (prefixHits.length === 1) return fmt(prefixHits[0]);
+      const hits = roster.filter(p => p.first_name.toLowerCase().startsWith(word));
+      if (hits.length === 1) return fmt(hits[0]);
     }
 
-    // Phonetic first name match — "Ally"/"Alley"/"Ali"/"Alie" all match "Allie"
+    // ── 8. Prefix on any last name word ─────────────────────────
     for (const word of textWords) {
-      const phonoHits = roster.filter(p =>
-        voicePhonetic(word) === voicePhonetic(p.first_name)
+      const hits = roster.filter(p =>
+        p.last_name.toLowerCase().split(' ').some(w => w.startsWith(word) && word.length >= 4)
       );
-      if (phonoHits.length === 1) return fmt(phonoHits[0]);
-      if (phonoHits.length > 1) {
-        // Tiebreak with Levenshtein
-        phonoHits.sort((a, b) =>
-          voiceLevenshtein(word, a.first_name.toLowerCase()) -
-          voiceLevenshtein(word, b.first_name.toLowerCase())
-        );
-        if (voiceLevenshtein(word, phonoHits[0].first_name.toLowerCase()) <
-            voiceLevenshtein(word, phonoHits[1].first_name.toLowerCase()))
-          return fmt(phonoHits[0]);
+      if (hits.length === 1) return fmt(hits[0]);
+    }
+
+    // ── 9. Phonetic on first name ────────────────────────────────
+    for (const word of textWords) {
+      const pw = voicePhonetic(word);
+      const hits = roster.filter(p => voicePhonetic(p.first_name) === pw);
+      if (hits.length === 1) return fmt(hits[0]);
+      if (hits.length > 1) {
+        const scored = hits.map(p => ({ p, _d: voiceLevenshtein(word, p.first_name.toLowerCase()) }));
+        const b = best(scored);
+        if (b) return fmt(b.p);
       }
     }
 
-    // Levenshtein fuzzy match — catches remaining near-misses
+    // ── 10. Phonetic on any last name word ───────────────────────
     for (const word of textWords) {
-      const scored = roster.map(p => ({
-        p, d: voiceLevenshtein(word, p.first_name.toLowerCase())
-      }));
-      const threshold = Math.max(1, Math.round(Math.max(...scored.map(s => s.p.first_name.length), word.length) * 0.3));
-      const hits = scored.filter(s => s.d <= threshold).sort((a, b) => a.d - b.d);
-      if (hits.length === 1) return fmt(hits[0].p);
-      if (hits.length > 1 && hits[0].d < hits[1].d) return fmt(hits[0].p);
+      const pw = voicePhonetic(word);
+      const hits = roster.filter(p =>
+        p.last_name.toLowerCase().split(' ').some(w => voicePhonetic(w) === pw)
+      );
+      if (hits.length === 1) return fmt(hits[0]);
     }
 
-    // Lone number word as last resort ("three goal" → player #3)
+    // ── 11. Levenshtein on first name ────────────────────────────
+    for (const word of textWords) {
+      const scored = roster.map(p => ({
+        p, _d: voiceLevenshtein(word, p.first_name.toLowerCase())
+      }));
+      const maxLen  = Math.max(...roster.map(p => p.first_name.length), word.length);
+      const threshold = Math.max(1, Math.round(maxLen * 0.3));
+      const hits = scored.filter(s => s._d <= threshold);
+      const b = best(hits);
+      if (b) return fmt(b.p);
+    }
+
+    // ── 12. Levenshtein on any last name word ────────────────────
+    for (const word of textWords) {
+      const threshold = Math.max(1, Math.round(word.length * 0.3));
+      const hits = roster.filter(p =>
+        p.last_name.toLowerCase().split(' ').some(w =>
+          w.length > 3 && voiceLevenshtein(word, w) <= threshold
+        )
+      ).map(p => ({
+        p, _d: Math.min(...p.last_name.toLowerCase().split(' ').map(w => voiceLevenshtein(word, w)))
+      }));
+      const b = best(hits);
+      if (b) return fmt(b.p);
+    }
+
+    // ── 13. Lone number word as last resort ──────────────────────
     for (const [word, num] of Object.entries(VOICE_NUMBER_WORDS)) {
       if (new RegExp(`\\b${word}\\b`).test(text)) {
         const p = roster.find(r => r.number === num);
@@ -1259,7 +1319,7 @@ function updateScoreboard() {
 
     // Extract assist portion — many natural phrasings
     let assistPlayer = null;
-    const assistRe = /\b(?:assisted by|assist(?:ed)?(?:\s+by)?|with assist(?:\s+(?:from|by))?|and assist(?:ed)?(?:\s+by)?)\s+(.+)$/;
+    const assistRe = /\b(?:assisted by|assist(?:ed)?(?:\s+(?:by|from|goes to|to))?|with (?:an? )?assist(?:\s+(?:from|by))?|and assist(?:ed)?(?:\s+by)?|the assist (?:goes )?to|assist (?:goes )?to)\s+(.+)$/;
     const assistMatch = text.match(assistRe);
     if (assistMatch) {
       const assistText = assistMatch[1].trim();
