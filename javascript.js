@@ -1206,8 +1206,15 @@ function updateScoreboard() {
     });
     if (lastHits.length === 1) return fmt(lastHits[0]);
 
-    // Phonetic first name match — "Ally"/"Alley"/"Ali"/"Alie" all match "Allie"
     const textWords = text.split(' ').filter(w => w.length >= 3);
+
+    // Prefix match — "Yari" → "Yaritxel", "Oly" → "Olympia"
+    for (const word of textWords) {
+      const prefixHits = roster.filter(p => p.first_name.toLowerCase().startsWith(word));
+      if (prefixHits.length === 1) return fmt(prefixHits[0]);
+    }
+
+    // Phonetic first name match — "Ally"/"Alley"/"Ali"/"Alie" all match "Allie"
     for (const word of textWords) {
       const phonoHits = roster.filter(p =>
         voicePhonetic(word) === voicePhonetic(p.first_name)
