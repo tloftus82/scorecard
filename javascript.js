@@ -152,13 +152,22 @@ document.addEventListener('DOMContentLoaded', async function() {
     return `${yyyy}-${mm}-${dd}_${hh}${mi}${ss}_${teamPart}_${opponentPart}`;
   }
 
+  function updateVoiceDockPosition() {
+    const h = document.getElementById('scoreboard').offsetHeight;
+    document.documentElement.style.setProperty('--scoreboard-height', h + 'px');
+  }
+
   function showGameSection() {
     document.getElementById('gameSection').style.display = 'block';
     const dock = document.getElementById('voiceDock');
     dock.classList.add('dock-visible'); // display controlled by CSS (block portrait / flex landscape)
     dock.classList.add('collapsed');    // body hidden until user taps Show
     document.body.classList.add('voice-dock-open');
+    updateVoiceDockPosition();
   }
+
+  window.addEventListener('resize',            updateVoiceDockPosition);
+  window.addEventListener('orientationchange', updateVoiceDockPosition);
 
   function showMatchupBar() {
     const teamParts = selectedTeamName.match(/^(.*?)\s*\((\d{4})\)$/);

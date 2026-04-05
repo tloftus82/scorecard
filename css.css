@@ -871,7 +871,7 @@ body.voice-dock-open .container {
   .voice-dock.dock-visible {
     display: flex;
     flex-direction: row-reverse; /* header strip on right, body panel on left */
-    top: 0;
+    top: var(--scoreboard-height, 70px); /* sit below the fixed scoreboard */
     bottom: 0;
     right: 0;
     left: auto;
@@ -907,10 +907,13 @@ body.voice-dock-open .container {
   .voice-dock-body {
     flex-direction: column;
     justify-content: center;
+    align-items: stretch;
     padding: 10px 10px;
     max-height: none;
+    height: 100%;
     max-width: 140px;
     width: 140px;
+    overflow: hidden;
     transition: max-width 0.3s ease, padding 0.3s ease;
   }
 
@@ -921,15 +924,16 @@ body.voice-dock-open .container {
     padding-right: 0;
   }
 
-  /* Landscape: only clear the permanent 36px header strip.
-     Expanded panel overlays content briefly — that's fine for transient use. */
+  /* Landscape: only clear the permanent 36px header strip */
   body.voice-dock-open .container {
     padding-bottom: 0;
     padding-right: 46px;
   }
 
-  /* Compact voice button in landscape */
+  /* Compact voice button in landscape — capped so it never overflows */
   .voice-btn {
+    flex: 0 1 auto;
+    max-height: 72px;
     padding: 10px 12px;
     font-size: 14px;
     border-radius: 20px;
