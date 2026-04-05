@@ -641,6 +641,13 @@ function updateScoreboard() {
     starterModal.style.display = 'flex';
   }
 
+  function requestMicPermission() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => stream.getTracks().forEach(t => t.stop()))
+      .catch(() => {}); // silently ignore denial — will surface naturally on first use
+  }
+
   confirmStartersButton.addEventListener('click', async function() {
     const checkboxes = starterList.querySelectorAll('input[type="checkbox"]');
     const checked = Array.from(checkboxes).filter(cb => cb.checked);
@@ -669,6 +676,7 @@ function updateScoreboard() {
     renderEvents();
     saveGame();
     saveSessionState();
+    requestMicPermission();
   });
 
   loadGameButton.addEventListener('click', async function () {
@@ -733,6 +741,7 @@ function updateScoreboard() {
         renderEventButtons();
         renderOtherEventButtons();
         saveSessionState();
+        requestMicPermission();
       });
   }
 
