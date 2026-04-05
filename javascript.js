@@ -1097,6 +1097,10 @@ function updateScoreboard() {
       'off target','wide of goal','shot over','over the bar','hit the post',
       'hit the bar','shot'
     ]},
+    // ── Standalone Assist ──────────────────────────────────
+    { name: 'Assist', other: false, keys: [
+      'assist','got the assist','gets the assist','had the assist','with the assist'
+    ]},
     // ── Goal (for us) ──────────────────────────────────────
     { name: 'Goal', other: false, keys: [
       'goal','scored','scores','she scored','he scored','score',
@@ -1257,6 +1261,10 @@ function updateScoreboard() {
     }
 
     const matchedEvent = voiceMatchEvent(text);
+    // "assist Olympia" — player ends up in assistPlayer, text is empty
+    if (!matchedEvent && assistPlayer) {
+      return { eventName: 'Assist', isOther: false, playerName: assistPlayer, assistPlayer: null, raw };
+    }
     if (!matchedEvent) return { raw, error: 'No event matched' };
 
     let playerName = null;
