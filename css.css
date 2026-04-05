@@ -843,8 +843,8 @@ li button {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 6px 14px 12px;
-  max-height: 80px;
+  padding: 4px 10px 14px;
+  max-height: 90px;
   overflow: hidden;
   transition: max-height 0.3s ease, padding 0.3s ease;
 }
@@ -857,17 +857,18 @@ li button {
 
 /* Add body padding so content isn't hidden behind dock */
 body.voice-dock-open .container {
-  padding-bottom: 96px;
+  padding-bottom: 112px;
 }
 
 .voice-btn {
   flex: 1;
+  width: 100%;
   background: #27ae60;
   color: #fff;
   border: none;
-  border-radius: 24px;
-  padding: 11px 20px;
-  font-size: 16px;
+  border-radius: 28px;
+  padding: 16px 20px;
+  font-size: 17px;
   font-weight: 600;
   cursor: pointer;
   user-select: none;
@@ -879,7 +880,7 @@ body.voice-dock-open .container {
 .voice-status {
   font-size: 13px;
   color: #aaa;
-  min-width: 90px;
+  min-width: 80px;
   text-align: right;
   white-space: nowrap;
 }
