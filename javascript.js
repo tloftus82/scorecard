@@ -1161,6 +1161,14 @@ function updateScoreboard() {
     return raw
       .toLowerCase()
       .replace(/[^\w\s]/g, ' ')
+      // Fix common ElevenLabs transcription errors for soccer terms
+      .replace(/\byellowcard\b/g, 'yellow card')
+      .replace(/\bredcard\b/g, 'red card')
+      .replace(/\bschott\b/g,   'shot')      // "shot" → "schott"
+      .replace(/\bshotz\b/g,    'shot')
+      .replace(/\bgold\b/g,     'goal')      // "goal" → "gold"
+      .replace(/\bgoaled\b/g,   'goal')
+      .replace(/\bsave s\b/g,   'saves')
       // Normalize number prefixes
       .replace(/\b(?:jersey|no\.?|number)\s*#?\s*(\d+)\b/g, 'number $1')
       .replace(/#(\d+)/g, 'number $1')
@@ -1199,9 +1207,17 @@ function updateScoreboard() {
       if (p) return fmt(p);
     }
 
+    // ── 1b. Bare digit: "14 goal" (no "number" prefix) ──────────
+    const bareDigit = text.match(/(?:^|\s)(\d{1,2})(?:\s|$)/);
+    if (bareDigit) {
+      const p = roster.find(r => r.number === parseInt(bareDigit[1]));
+      if (p) return fmt(p);
+    }
+
     // ── 2. Number word: "number three" / "number twenty one" ────
+    // Use word-boundary regex to avoid "number six" matching inside "number sixteen"
     for (const [word, num] of Object.entries(VOICE_NUMBER_WORDS)) {
-      if (text.includes('number ' + word)) {
+      if (new RegExp('\\bnumber\\s+' + word + '\\b').test(text)) {
         const p = roster.find(r => r.number === num);
         if (p) return fmt(p);
       }
