@@ -60,7 +60,8 @@ foreach ($roster as $player) {
         'YellowCards' => 0,
         'Saves' => 0,
         'GoalsAllowed' => 0,
-        'PKAgainst' => 0
+        'PKAgainstAllowed' => 0,
+        'PKAgainstSaved' => 0
     ];
 }
 
@@ -125,10 +126,10 @@ foreach ($events as $event) {
                 break;
             case 'PK Against (Scored)':
                 $players[$playerName]['GoalsAllowed']++;
-                $players[$playerName]['PKAgainst']++;
+                $players[$playerName]['PKAgainstAllowed']++;
                 break;
             case 'PK Against (Missed)':
-                $players[$playerName]['PKAgainst']++;
+                $players[$playerName]['PKAgainstSaved']++;
                 break;
             case 'Corner Kick':
                 $cornerKicksUs++;
@@ -148,7 +149,7 @@ foreach ($players as $playerName => $player) {
     if ($player['GoalsAllowed'] > 0) {
         $players[$playerName]['IsGoalie'] = true;
     }
-    if ($player['PKAgainst'] > 0) {
+    if ($player['PKAgainstAllowed'] > 0 || $player['PKAgainstSaved'] > 0) {
         $players[$playerName]['IsGoalie'] = true;
     }
 }
@@ -316,7 +317,8 @@ foreach ($events as $event) {
                     <th>Goalie</th>
                     <th>Saves</th>
                     <th>Goals Allowed</th>
-                    <th>PKs Against/Allowed</th>
+                    <th>PKs Allowed</th>
+                    <th>PKs Saved</th>
                 </tr>
             </thead>
             <tbody>
@@ -324,21 +326,24 @@ foreach ($events as $event) {
                 // Initialize total stats for goalies
                 $totalSaves = 0;
                 $totalGoalsAllowed = 0;
-                $totalPKAgainst = 0;
+                $totalPKAgainstAllowed = 0;
+                $totalPKAgainstSaved = 0;
 
                 // Loop through each player to display goalie stats
                 foreach ($players as $playerName => $stats): 
                     if ($stats['IsGoalie'] === true): // Only display goalies
-                        $totalSaves += $stats['Saves']; // Add to total saves
-                        $totalGoalsAllowed += $stats['GoalsAllowed']; // Add to total goals allowed
-                        $totalPKAgainst += $stats['PKAgainst']; // Add to total PKs against
+                        $totalSaves += $stats['Saves'];
+                        $totalGoalsAllowed += $stats['GoalsAllowed'];
+                        $totalPKAgainstAllowed += $stats['PKAgainstAllowed'];
+                        $totalPKAgainstSaved += $stats['PKAgainstSaved'];
                 ?>
                     <tr>
                         <td><?php echo $stats['Number']; ?></td>
                         <td><?php echo htmlspecialchars($playerName); ?></td>
                         <td class="<?php echo $stats['Saves'] === 0 ? 'gray-zero' : ''; ?>"><?php echo $stats['Saves']; ?></td> <!-- Saves (display 0 in gray) -->
                         <td class="<?php echo $stats['GoalsAllowed'] === 0 ? 'gray-zero' : ''; ?>"><?php echo $stats['GoalsAllowed']; ?></td> <!-- Goals Allowed (display 0 in gray) -->
-                        <td class="<?php echo $stats['PKAgainst'] === 0 ? 'gray-zero' : ''; ?>"><?php echo $stats['PKAgainst']; ?></td> <!-- PKs Against (display 0 in gray) -->
+                        <td class="<?php echo $stats['PKAgainstAllowed'] === 0 ? 'gray-zero' : ''; ?>"><?php echo $stats['PKAgainstAllowed']; ?></td>
+                        <td class="<?php echo $stats['PKAgainstSaved'] === 0 ? 'gray-zero' : ''; ?>"><?php echo $stats['PKAgainstSaved']; ?></td>
                     </tr>
                 <?php 
                     endif; 
@@ -348,8 +353,9 @@ foreach ($events as $event) {
                 <tr>
                     <td colspan="2"><strong>Total</strong></td>
                     <td><?php echo $totalSaves; ?></td>
-                    <td><?php echo $totalGoalsAllowed; ?></td> <!-- Total Goals Allowed -->
-                    <td><?php echo $totalPKAgainst; ?></td> <!-- Total PKs Against -->
+                    <td><?php echo $totalGoalsAllowed; ?></td>
+                    <td><?php echo $totalPKAgainstAllowed; ?></td>
+                    <td><?php echo $totalPKAgainstSaved; ?></td>
                 </tr>
             </tbody>
         </table>
