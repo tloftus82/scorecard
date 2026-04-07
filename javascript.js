@@ -488,7 +488,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
   }
 
-  function renderEvents() {
+  function renderEvents(skipCelebrations = false) {
     eventListElement.innerHTML = '';
     usScore = 0;
     themScore = 0;
@@ -519,7 +519,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       themScore += scoring.them;
     });
 
-    updateScoreboard(true); // never celebrate during a render — celebrations are triggered by the event handler
+    updateScoreboard(skipCelebrations);
     document.querySelector('.event-window').scrollTop = 0;
   }
 
@@ -747,7 +747,7 @@ function updateScoreboard(skipCelebrations = false) {
         showGameSection();
         updateScorecardLink();
 
-        renderEvents();
+        renderEvents(true);
         updateScoreboard();
         renderPlayers();
         renderEventButtons();
@@ -824,7 +824,7 @@ function updateScoreboard(skipCelebrations = false) {
     loadGameButton.style.display = 'none';
     showGameSection();
     updateScorecardLink();
-    renderEvents();
+    renderEvents(true);
     updateScoreboard();
 
     // Restore half indicator
