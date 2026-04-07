@@ -519,7 +519,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       themScore += scoring.them;
     });
 
-    updateScoreboard();
+    updateScoreboard(true); // never celebrate during a render — celebrations are triggered by the event handler
     document.querySelector('.event-window').scrollTop = 0;
   }
 
@@ -581,7 +581,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     launchFallingItems('ball');
   }
 
-function updateScoreboard() {
+function updateScoreboard(skipCelebrations = false) {
     const prevUs   = renderedUsScore;
     const prevThem = renderedThemScore;
     renderedUsScore  = usScore;
@@ -592,7 +592,7 @@ function updateScoreboard() {
     if (usScore !== prevUs) {
       animateCount(usScoreElement, prevUs, usScore, cls);
       popScoreElement(usScoreElement);
-      if (usScore > prevUs && celebrationsEnabled) showGoalCelebration();
+      if (usScore > prevUs && celebrationsEnabled && !skipCelebrations) showGoalCelebration();
     } else {
       usScoreElement.textContent = usScore;
     }
@@ -748,7 +748,6 @@ function updateScoreboard() {
         updateScorecardLink();
 
         renderEvents();
-        renderedUsScore = usScore; renderedThemScore = themScore; // skip celebrations on load
         updateScoreboard();
         renderPlayers();
         renderEventButtons();
@@ -826,7 +825,6 @@ function updateScoreboard() {
     showGameSection();
     updateScorecardLink();
     renderEvents();
-    renderedUsScore = usScore; renderedThemScore = themScore; // skip celebrations on restore
     updateScoreboard();
 
     // Restore half indicator
