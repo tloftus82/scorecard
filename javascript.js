@@ -748,6 +748,7 @@ function updateScoreboard() {
         updateScorecardLink();
 
         renderEvents();
+        renderedUsScore = usScore; renderedThemScore = themScore; // skip celebrations on load
         updateScoreboard();
         renderPlayers();
         renderEventButtons();
@@ -825,6 +826,7 @@ function updateScoreboard() {
     showGameSection();
     updateScorecardLink();
     renderEvents();
+    renderedUsScore = usScore; renderedThemScore = themScore; // skip celebrations on restore
     updateScoreboard();
 
     // Restore half indicator
